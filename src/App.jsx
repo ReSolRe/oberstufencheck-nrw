@@ -4,7 +4,9 @@
  * Lizenziert unter AGPL-3.0. Kommerzielle Nutzung nur mit schriftlicher Genehmigung.
  * https://www.gnu.org/licenses/agpl-3.0.html
  */
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import "./polyfill.js";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import MDBReader from "mdb-reader";
 
 /* ═══════════════════════════════════════════════
    DATA
@@ -692,8 +694,6 @@ export default function App(){
   };
 
   // LuPO .lpo Import (Microsoft Access MDB) – Schulkonfiguration
-  var mdbRef=useRef(null);
-  useEffect(function(){import("mdb-reader").then(function(m){mdbRef.current=m.default;});},[]);
   var LUPO_MAP={
     "D":"D","E":"E","M":"M","BI":"BI","PH":"PH","CH":"CH","IF":"IF",
     "KU":"KU","MU":"MU","LI":"LI","GE":"GE","SW":"SW","EK":"EK",
@@ -710,9 +710,9 @@ export default function App(){
     var file=ev.target.files&&ev.target.files[0];if(!file)return;
     if(file.size>5000000){alert("Datei zu groß (max. 5 MB).");return;}
     if(!file.name.toLowerCase().endsWith(".lpo")){alert("Bitte eine .lpo-Datei auswählen.");return;}
-    var doImport=function(MDB,buf){
+    var doImport=function(buf){
       try{
-        var db=new MDB(Buffer.from(buf));
+        var db=new MDBReader(Buffer.from(buf));
         var tables=db.getTableNames();
         // Prüfe ob Fächertabelle existiert
         if(tables.indexOf("ABP_Faecher")<0){
@@ -774,8 +774,7 @@ export default function App(){
       }catch(err){alert("Fehler beim Lesen der LuPO-Datei:\n"+err.message+"\n\nBitte stelle sicher, dass es eine LuPO-Schuldatei (.lpo) ist – keine umbenannte oder beschädigte Datei.");}
     };
     var r=new FileReader();r.onload=function(e){
-      if(mdbRef.current){doImport(mdbRef.current,e.target.result);}
-      else{import("mdb-reader").then(function(m){mdbRef.current=m.default;doImport(m.default,e.target.result);}).catch(function(){alert("MDB-Reader konnte nicht geladen werden.");});}
+      doImport(e.target.result);
     };r.readAsArrayBuffer(file);
     if(ev.target)ev.target.value="";
   };
