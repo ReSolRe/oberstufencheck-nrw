@@ -385,8 +385,8 @@ function InfoOverlay(p){
       <p style={{fontSize:13,color:T.txL,marginTop:12,lineHeight:1.7}}>
         Nicht-kommerzielles Open-Source-Projekt zur Unterstützung
         von Schüler:innen bei der Oberstufenplanung.
-        Entwickelt als plattformunabhängige Alternative zum
-        LuPO-Planungstool des Schulministeriums (nur Windows).
+        Entwickelt als plattformunabhängige Alternative (ios, Windows, Android, Linux) zum
+        LuPO-Planungstool des Schulministeriums.
         Dieses Tool ersetzt nicht die offizielle Beratung
         durch die Oberstufenkoordination der Schule.
         Alle Angaben ohne Gewähr.
