@@ -4,9 +4,7 @@
  * Lizenziert unter AGPL-3.0. Kommerzielle Nutzung nur mit schriftlicher Genehmigung.
  * https://www.gnu.org/licenses/agpl-3.0.html
  */
-import "./polyfill.js";
 import { useState, useMemo, useCallback, useEffect } from "react";
-import MDBReader from "mdb-reader";
 
 /* ═══════════════════════════════════════════════
    DATA
@@ -322,7 +320,7 @@ function HelpOverlay(p){
     {q:"Was passiert mit meinen Daten?",a:"Alles bleibt in deinem Browser. Es werden keine Daten an einen Server geschickt. Du kannst deinen Plan als JSON-Datei speichern und später wieder laden."},
     {q:"Kann ich Religion und Philosophie gleichzeitig belegen?",a:"Nein – an den allermeisten Schulen liegen Religion und Philosophie auf dem gleichen Zeitslot. Du wählst eines von beiden."},
     {q:"Muss ich Geschichte und SoWi belegen?",a:"Ja, beide Fächer müssen in deiner Oberstufe vorkommen. Entweder als reguläres Fach (mind. bis Ende Q1) oder als Zusatzkurs in Q2. Wer z.B. Geschichte als GW-Fach wählt, braucht nur noch ZK SoWi in Q2."},
-    {q:"Was ist dieses Tool?",a:"Ein kostenloses, unabhängiges Hilfsmittel zur Planung deiner Oberstufe. Es funktioniert auf jedem Gerät – Handy, Tablet, Mac, PC. Du kannst auch die LuPO-Spieldatei (.lpo) deiner Schule direkt importieren, um das Fächerangebot automatisch zu übernehmen. Die App ersetzt aber nicht die offizielle Beratung durch deine Schule."},
+    {q:"Was ist dieses Tool?",a:"Ein kostenloses, unabhängiges Hilfsmittel zur Planung deiner Oberstufe. Es funktioniert auf jedem Gerät – Handy, Tablet, Mac, PC – als plattformunabhängige Alternative zum LuPO des Schulministeriums (nur Windows). Die App ersetzt aber nicht die offizielle Beratung durch deine Schule."},
   ];
   return <div style={{position:"fixed",inset:0,zIndex:9999,backgroundColor:"rgba(0,0,0,.5)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={p.onClose}>
     <div style={{backgroundColor:T.card,borderRadius:20,padding:28,maxWidth:580,width:"100%",maxHeight:"85vh",overflowY:"auto",boxShadow:"0 20px 60px rgba(0,0,0,.15)"}} onClick={function(e){e.stopPropagation();}}>
@@ -693,92 +691,6 @@ export default function App(){
     if(ev.target)ev.target.value="";
   };
 
-  // LuPO .lpo Import (Microsoft Access MDB) – Schulkonfiguration
-  var LUPO_MAP={
-    "D":"D","E":"E","M":"M","BI":"BI","PH":"PH","CH":"CH","IF":"IF",
-    "KU":"KU","MU":"MU","LI":"LI","GE":"GE","SW":"SW","EK":"EK",
-    "PA":"PA","PL":"PL","PS":"PS","KR":"KR","ER":"ER","SP":"SP",
-    "TC":"TC","EL":"EL",
-    "F":"F","F5":"F","F6":"F","F7":"F","F8":"F","F9":"F",
-    "L":"L","L5":"L","L6":"L","L7":"L","L8":"L","L9":"L",
-    "S":"S","S5":"S","S6":"S","S7":"S","S8":"S","S9":"S",
-    "S0":"S0","F0":"F0","L0":"L0",
-    "EW":"PA"
-  };
-  var LUPO_IGNORE=["VD","VE","VM","VX","PX","BK"];
-  var impLuPO=function(ev){
-    var file=ev.target.files&&ev.target.files[0];if(!file)return;
-    if(file.size>5000000){alert("Datei zu groß (max. 5 MB).");return;}
-    if(!file.name.toLowerCase().endsWith(".lpo")){alert("Bitte eine .lpo-Datei auswählen.");return;}
-    var doImport=function(buf){
-      try{
-        var db=new MDBReader(Buffer.from(buf));
-        var tables=db.getTableNames();
-        // Prüfe ob Fächertabelle existiert
-        if(tables.indexOf("ABP_Faecher")<0){
-          alert("Diese Datei enthält keine Fächertabelle (ABP_Faecher).\n\nMöglicherweise ist es keine gültige LuPO-Datei.\nGefundene Tabellen: "+tables.join(", "));return;
-        }
-        var rows=db.getTable("ABP_Faecher").getData();
-        if(!rows||rows.length===0){alert("Fächertabelle ist leer.");return;}
-        // Fächer auslesen
-        var foundVf=[];var foundLK=[];
-        var nfsFound=[];
-        rows.forEach(function(row){
-          var code=String(row.FachKrz||"").trim();
-          if(LUPO_IGNORE.indexOf(code)>=0)return;
-          // Neu einsetzende FS erkennen
-          var isNFS=String(row.AlsNeueFSInSII||"").toUpperCase()==="J";
-          var mapped=null;
-          if(isNFS){
-            // Prüfe StatistikKrz für korrekte Zuordnung
-            var stat=String(row.StatistikKrz||code).trim();
-            if(stat==="S0"||code==="S0")mapped="S0";
-            else if(stat==="F0"||code==="F0")mapped="F0";
-            else if(stat==="L0"||code==="L0")mapped="L0";
-            else if(code.charAt(0)==="S")mapped="S0";
-            else if(code.charAt(0)==="F")mapped="F0";
-            else if(code.charAt(0)==="L")mapped="L0";
-          }
-          if(!mapped)mapped=LUPO_MAP[code];
-          if(!mapped||!isValidId(mapped))return;
-          // Duplikatschutz
-          if(foundVf.indexOf(mapped)>=0)return;
-          foundVf.push(mapped);
-          // LK möglich?
-          if(String(row.LK_Moegl||"").toUpperCase()==="J"&&FM[mapped]&&FM[mapped].lk){
-            foundLK.push(mapped);
-          }
-        });
-        if(foundVf.length<5){alert("Nur "+foundVf.length+" Fächer erkannt.\n\nDas Dateiformat scheint nicht kompatibel zu sein.");return;}
-        // Schulname aus ABP_Schuldaten
-        var schulName="";var schulOrt="";var pruefOrd="";
-        if(tables.indexOf("ABP_Schuldaten")>=0){
-          try{
-            var sR=db.getTable("ABP_Schuldaten").getData();
-            if(sR&&sR[0]){
-              schulName=String(sR[0].Bezeichnung1||"").trim();
-              schulOrt=String(sR[0].Bezeichnung3||"").trim();
-              pruefOrd=String(sR[0].PruefOrdnung||"").trim();
-            }
-          }catch(ex){}
-        }
-        // G8/G9 erkennen
-        if(pruefOrd.indexOf("G8")>=0)setPr(function(old){return Object.assign({},old,{bildungsgang:"G8"});});
-        else if(pruefOrd.indexOf("G9")>=0||pruefOrd.indexOf("13")>=0)setPr(function(old){return Object.assign({},old,{bildungsgang:"G9"});});
-        if(foundLK.length===0)foundLK=foundVf.filter(function(id){return FM[id]&&FM[id].lk;});
-        setVf(foundVf);setVfLK(foundLK);
-        var now=new Date();var datum=now.getDate()+"."+(now.getMonth()+1)+"."+now.getFullYear();
-        var displayName=schulName||(file.name.replace(/\.lpo$/i,"").replace(/_/g," "));
-        setSchule({name:displayName,jahr:"",stand:"LuPO-Import "+datum});
-        alert("LuPO-Import erfolgreich!\n\n"+displayName+(schulOrt?" – "+schulOrt:"")+"\n"+foundVf.length+" Fächer, "+foundLK.length+" als LK möglich"+(pruefOrd?"\nPrüfungsordnung: "+pruefOrd:""));
-      }catch(err){alert("Fehler beim Lesen der LuPO-Datei:\n"+err.message+"\n\nBitte stelle sicher, dass es eine LuPO-Schuldatei (.lpo) ist – keine umbenannte oder beschädigte Datei.");}
-    };
-    var r=new FileReader();r.onload=function(e){
-      doImport(e.target.result);
-    };r.readAsArrayBuffer(file);
-    if(ev.target)ev.target.value="";
-  };
-
   var Btn=function(p){return <button onClick={p.onClick} disabled={p.disabled} style={{padding:(p.big?"14px 28px":"10px 20px"),borderRadius:14,border:p.outline?"2px solid "+T.bdr:"none",backgroundColor:p.disabled?"#e0dce8":p.outline?"transparent":p.color||T.pri,color:p.outline?T.tx:"#fff",cursor:p.disabled?"default":"pointer",fontSize:p.big?15:13,fontWeight:700,transition:"all .2s",boxShadow:!p.outline&&!p.disabled?"0 4px 14px rgba(108,43,217,.2)":"none",letterSpacing:".01em"}}>{p.children}</button>;};
 
   /* ════════ LANDING ════════ */
@@ -793,7 +705,7 @@ export default function App(){
         <div style={{fontSize:56,marginBottom:8,filter:"drop-shadow(0 4px 8px rgba(108,43,217,.15))"}}>🎓</div>
         <h1 style={{fontSize:32,fontWeight:800,background:"linear-gradient(135deg,"+T.pri+","+T.acc+")",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:6}}>OberstufenCheck NRW</h1>
         <p style={{color:T.txL,fontSize:16,marginBottom:4,fontWeight:400}}>Schullaufbahnplaner für die gymnasiale Oberstufe</p>
-        <p style={{color:T.txL,fontSize:12,marginBottom:12,fontWeight:400,lineHeight:1.5}}>Fächerwahl, Leistungskurse & Abiturfächer planen · APO-GOSt-Regelprüfung · Auf jedem Gerät · LuPO-Import</p>
+        <p style={{color:T.txL,fontSize:12,marginBottom:12,fontWeight:400,lineHeight:1.5}}>Fächerwahl, Leistungskurse & Abiturfächer planen · APO-GOSt-Regelprüfung · Auf jedem Gerät</p>
         <button onClick={function(){setShowHelp(true);}} style={{marginBottom:28,padding:"6px 16px",borderRadius:20,border:"1px solid "+T.bdr,backgroundColor:T.card,color:T.txL,cursor:"pointer",fontSize:12,fontWeight:500}}>❓ Hilfe & Begriffe</button>
 
         <div style={{display:"grid",gap:12}}>
@@ -825,16 +737,10 @@ export default function App(){
         </div>
 
         {schule.name&&<div style={{marginTop:12,padding:"10px 16px",borderRadius:12,background:"linear-gradient(135deg,#f0fff4,#ecfdf5)",fontSize:13,color:T.ok,textAlign:"center",border:"1px solid #bbf7d0"}}>🏫 {schule.name}{schule.jahr?" – "+schule.jahr:""}{schule.stand?" ("+schule.stand+")":""}</div>}
-        <div style={{marginTop:schule.name?8:14,display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
-          <label style={{cursor:"pointer"}}>
-            <span style={{fontSize:12,color:T.txL,textDecoration:"underline"}}>🏫 Schulprofil laden (.json)</span>
-            <input type="file" accept=".json" onChange={impSchule} style={{display:"none"}}/>
-          </label>
-          <label style={{cursor:"pointer"}}>
-            <span style={{fontSize:12,color:T.acc,textDecoration:"underline"}}>📂 LuPO-Schuldatei importieren (.lpo)</span>
-            <input type="file" accept=".lpo" onChange={impLuPO} style={{display:"none"}}/>
-          </label>
-        </div>
+        <label style={{display:"block",marginTop:schule.name?8:14,textAlign:"center",cursor:"pointer"}}>
+          <span style={{fontSize:12,color:T.txL,textDecoration:"underline"}}>🏫 Schulprofil laden (eigenes oder von deiner Schule)</span>
+          <input type="file" accept=".json" onChange={impSchule} style={{display:"none"}}/>
+        </label>
 
         <AppFooter showFeedback onInfo={setInfoPage} />
         {!online&&<div style={{marginTop:12,padding:"10px 16px",borderRadius:12,background:"linear-gradient(135deg,#fef3c7,#fde68a)",fontSize:12,color:"#92400e",textAlign:"center"}}>📴 Du bist offline – die App funktioniert trotzdem!</div>}
@@ -859,8 +765,7 @@ export default function App(){
         </div>
         <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
           <Btn onClick={expSchule}>📤 Schulprofil exportieren</Btn>
-          <label style={{cursor:"pointer"}}><Btn outline>📥 Schulprofil (.json)</Btn><input type="file" accept=".json" onChange={impSchule} style={{display:"none"}}/></label>
-          <span><Btn outline onClick={function(){document.getElementById("lpoInput").click();}}>📂 LuPO-Schuldatei (.lpo)</Btn><input id="lpoInput" type="file" accept=".lpo" onChange={impLuPO} style={{display:"none"}}/></span>
+          <label style={{cursor:"pointer"}}><Btn outline>📥 Schulprofil importieren</Btn><input type="file" accept=".json" onChange={impSchule} style={{display:"none"}}/></label>
         </div>
         <Hint>Das Schulprofil (Fächer + LK-Angebot) kann als Datei gespeichert und an Mitschüler:innen weitergegeben werden. Das Angebot kann sich von Jahr zu Jahr ändern.</Hint>
         <div style={{marginTop:14,fontSize:12,fontWeight:700,color:T.txL,marginBottom:6}}>FÄCHERANGEBOT</div>
@@ -967,7 +872,7 @@ export default function App(){
     case"schule":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Deine Schule einrichten {"🏫"}</h2>
         {schule.name?<div style={{padding:"10px 14px",borderRadius:12,background:"linear-gradient(135deg,"+T.okBg+",#d1fae5)",marginBottom:12,fontSize:13,color:T.ok,border:"1px solid #86efac"}}>✓ Schulprofil geladen: <strong>{schule.name}</strong>{schule.jahr?" ("+schule.jahr+")":""}{schule.stand?" – Stand: "+schule.stand:""}</div>
         :<div><p style={{fontSize:14,color:T.txL,marginBottom:6,lineHeight:1.6}}>Die Grundfächer sind schon ausgewählt. Füge hinzu, was deine Schule <strong>zusätzlich</strong> anbietet.</p>
-        <Hint>Du hast ein Schulprofil (.json) oder eine LuPO-Schuldatei (.lpo)? Gehe über ← Start zurück und lade es dort – dann sind die Fächer deiner Schule automatisch richtig eingestellt.</Hint></div>}
+        <Hint>Du hast ein Schulprofil (.json)? Gehe über ← Start zurück und lade es dort – dann sind die Fächer deiner Schule automatisch richtig eingestellt.</Hint></div>}
         <div style={{fontSize:12,fontWeight:700,color:T.txL,marginBottom:8,letterSpacing:".03em"}}>FÄCHERANGEBOT</div>
         {["I","II","III","X"].map(function(af){return <div key={af} style={{marginBottom:10}}><div style={{fontSize:10,fontWeight:700,color:T.txL,textTransform:"uppercase",marginBottom:4,letterSpacing:".05em"}}>{af!=="X"?"AF "+af:"Sonstige"}</div><div style={{display:"flex",flexWrap:"wrap",gap:5}}>{FAE.filter(function(f){return f.af===af;}).map(function(f){var act=vf.indexOf(f.id)>=0;var isMin=DEFVF.indexOf(f.id)>=0;return <button key={f.id} onClick={function(){setVf(function(p2){var nv=act?p2.filter(function(x){return x!==f.id;}):p2.concat([f.id]);setVfLK(function(lks){return lks.filter(function(x){return nv.indexOf(x)>=0;});});return nv;});}} style={{padding:"6px 14px",borderRadius:20,border:"2px solid "+(act?T.pri:"transparent"),backgroundColor:act?T.priL:"#f4f2fa",color:act?T.pri:T.txL,cursor:"pointer",fontSize:12,fontWeight:act?600:400,transition:"all .15s"}}>{(act?"✓ ":"")+f.n+(isMin&&act?" •":"")}</button>;})}</div></div>;})}
         <div style={{marginTop:16,paddingTop:14,borderTop:"2px solid "+T.bdr}}>
