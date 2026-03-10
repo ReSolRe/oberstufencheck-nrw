@@ -379,14 +379,14 @@ function InfoOverlay(p){
       <h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginBottom:12}}>Impressum</h2>
       <p style={{fontSize:14,lineHeight:1.8,color:T.tx}}>
         <strong>Verantwortlich für den Inhalt:</strong><br/>
-        GregorSteinke<br/>
+        Gregor Steinke<br/>
         E-Mail: kursplaner.nrw@gmail.com
       </p>
       <p style={{fontSize:13,color:T.txL,marginTop:12,lineHeight:1.7}}>
         Nicht-kommerzielles Open-Source-Projekt zur Unterstützung
         von Schüler:innen bei der Oberstufenplanung.
-        Entwickelt als plattformunabhängige Alternative (ios, Windows, Android, Linux) zum
-        LuPO-Planungstool des Schulministeriums.
+        Entwickelt als plattformunabhängige Alternative zum
+        LuPO-Planungstool des Schulministeriums (nur Windows).
         Dieses Tool ersetzt nicht die offizielle Beratung
         durch die Oberstufenkoordination der Schule.
         Alle Angaben ohne Gewähr.
@@ -509,19 +509,32 @@ export default function App(){
           n[fid][HJ[i]]=false;
         }
       }else{
-        // ANWAHL: Nur erlaubt wenn Vorgänger-HJ belegt ist (keine Lücken)
-        // Ausnahme: EF.1 (erster Einstieg) oder ZK (Q2.1/Q2.2 ohne EF)
-        if(hjIdx>0){
-          var prevOn=!!n[fid][HJ[hjIdx-1]];
-          // Prüfe ob es eine Erstbelegung ist (noch nie belegt gewesen)
-          var jemalsBelegt=false;
-          for(var j=0;j<hjIdx;j++){if(n[fid][HJ[j]])jemalsBelegt=true;}
-          if(jemalsBelegt&&!prevOn){
-            // War schon mal belegt, Vorgänger ist aus → Lücke → weg ist weg
-            return n; // Klick ignorieren
+        // ANWAHL: Prüfe Vorgänger
+        var jemalsBelegt=false;
+        var letztesBelegtes=-1;
+        for(var j=0;j<HJ.length;j++){if(n[fid][HJ[j]]){jemalsBelegt=true;letztesBelegtes=j;}}
+        var f=FM[fid];
+
+        if(jemalsBelegt){
+          // War schon mal belegt → nur direkt anschließend erlaubt
+          if(hjIdx!==letztesBelegtes+1) return n;
+          n[fid][hj]=true;
+        }else{
+          // Erstbelegung: Startpunkt bestimmen
+          var startIdx=0; // Default: EF.1
+          if(f&&f.qo){
+            // Q-only Fächer (Literatur): Start ab Q1.1
+            startIdx=HJ.indexOf("Q1.1");
+          }else if((fid==="GE"||fid==="SW")&&hjIdx>=HJ.indexOf("Q2.1")){
+            // ZK: GE/SW ab Q2.1 ohne EF → nur Q2-HJs füllen
+            startIdx=HJ.indexOf("Q2.1");
+          }
+          // Vom Startpunkt bis zum angeklickten HJ füllen
+          if(hjIdx<startIdx) return n; // Klick vor erlaubtem Start ignorieren
+          for(var k=startIdx;k<=hjIdx;k++){
+            n[fid][HJ[k]]=true;
           }
         }
-        n[fid][hj]=true;
       }
       return n;
     });
