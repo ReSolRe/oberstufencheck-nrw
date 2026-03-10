@@ -4,8 +4,7 @@
  * Lizenziert unter AGPL-3.0. Kommerzielle Nutzung nur mit schriftlicher Genehmigung.
  * https://www.gnu.org/licenses/agpl-3.0.html
  */
-import { useState, useMemo, useCallback, useEffect } from "react";
-import MDBReader from "mdb-reader";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 
 /* ═══════════════════════════════════════════════
    DATA
@@ -381,7 +380,7 @@ function InfoOverlay(p){
       <p style={{fontSize:14,lineHeight:1.8,color:T.tx}}>
         <strong>Verantwortlich für den Inhalt:</strong><br/>
         Gregor Steinke<br/>
-        E-Mail: mailto:kursplaner.nrw@gmail.com
+        E-Mail: kursplaner.nrw@gmail.com
       </p>
       <p style={{fontSize:13,color:T.txL,marginTop:12,lineHeight:1.7}}>
         Nicht-kommerzielles Open-Source-Projekt zur Unterstützung
@@ -693,28 +692,27 @@ export default function App(){
   };
 
   // LuPO .lpo Import (Microsoft Access MDB) – Schulkonfiguration
+  var mdbRef=useRef(null);
+  useEffect(function(){import("mdb-reader").then(function(m){mdbRef.current=m.default;});},[]);
   var LUPO_MAP={
     "D":"D","E":"E","M":"M","BI":"BI","PH":"PH","CH":"CH","IF":"IF",
     "KU":"KU","MU":"MU","LI":"LI","GE":"GE","SW":"SW","EK":"EK",
     "PA":"PA","PL":"PL","PS":"PS","KR":"KR","ER":"ER","SP":"SP",
     "TC":"TC","EL":"EL",
-    // Fortgeführte FS mit Jahrgangsstufe
     "F":"F","F5":"F","F6":"F","F7":"F","F8":"F","F9":"F",
     "L":"L","L5":"L","L6":"L","L7":"L","L8":"L","L9":"L",
     "S":"S","S5":"S","S6":"S","S7":"S","S8":"S","S9":"S",
-    // Neu einsetzende FS
     "S0":"S0","F0":"F0","L0":"L0",
-    // Erziehungswiss. Variante
     "EW":"PA"
   };
-  var LUPO_IGNORE=["VD","VE","VM","VX","PX","BK"]; // Vertiefungsfächer etc.
+  var LUPO_IGNORE=["VD","VE","VM","VX","PX","BK"];
   var impLuPO=function(ev){
     var file=ev.target.files&&ev.target.files[0];if(!file)return;
     if(file.size>5000000){alert("Datei zu groß (max. 5 MB).");return;}
     if(!file.name.toLowerCase().endsWith(".lpo")){alert("Bitte eine .lpo-Datei auswählen.");return;}
-    var r=new FileReader();r.onload=function(e){
+    var doImport=function(MDB,buf){
       try{
-        var db=new MDBReader(Buffer.from(e.target.result));
+        var db=new MDB(Buffer.from(buf));
         var tables=db.getTableNames();
         // Prüfe ob Fächertabelle existiert
         if(tables.indexOf("ABP_Faecher")<0){
@@ -774,6 +772,10 @@ export default function App(){
         setSchule({name:displayName,jahr:"",stand:"LuPO-Import "+datum});
         alert("LuPO-Import erfolgreich!\n\n"+displayName+(schulOrt?" – "+schulOrt:"")+"\n"+foundVf.length+" Fächer, "+foundLK.length+" als LK möglich"+(pruefOrd?"\nPrüfungsordnung: "+pruefOrd:""));
       }catch(err){alert("Fehler beim Lesen der LuPO-Datei:\n"+err.message+"\n\nBitte stelle sicher, dass es eine LuPO-Schuldatei (.lpo) ist – keine umbenannte oder beschädigte Datei.");}
+    };
+    var r=new FileReader();r.onload=function(e){
+      if(mdbRef.current){doImport(mdbRef.current,e.target.result);}
+      else{import("mdb-reader").then(function(m){mdbRef.current=m.default;doImport(m.default,e.target.result);}).catch(function(){alert("MDB-Reader konnte nicht geladen werden.");});}
     };r.readAsArrayBuffer(file);
     if(ev.target)ev.target.value="";
   };
