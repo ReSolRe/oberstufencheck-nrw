@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://ReSolRe.github.io/oberstufencheck-nrw/sitemap.xml
