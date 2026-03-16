@@ -1,5 +1,5 @@
 /*
- * OberstufenCheck NRW – Schullaufbahnplaner für die gymnasiale Oberstufe
+ * OberstufenCheck NRW – Schullaufbahnplaner für die Oberstufe an Gymnasien und Gesamtschulen
  * © 2026 Gregor Steinke. Alle Rechte vorbehalten.
  * Lizenziert unter AGPL-3.0. Kommerzielle Nutzung nur mit schriftlicher Genehmigung.
  * https://www.gnu.org/licenses/agpl-3.0.html
@@ -354,7 +354,7 @@ function PrintHeader(p){
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
       <div>
         <h1 style={{fontSize:18,fontWeight:700,margin:0}}>OberstufenCheck NRW – Belegungsplan</h1>
-        <p style={{fontSize:11,color:"#666",margin:"4px 0 0"}}>{sc.name?sc.name+" – ":""}Gymnasiale Oberstufe{sc.jahr?" – SJ "+sc.jahr:""}</p>
+        <p style={{fontSize:11,color:"#666",margin:"4px 0 0"}}>{sc.name?sc.name+" – ":""}Oberstufe (Gesamtschule und Gymnasium){sc.jahr?" – SJ "+sc.jahr:""}</p>
       </div>
       <div style={{textAlign:"right",fontSize:11,color:"#666"}}>
         <div>Erstellt: {datum}</div>
@@ -712,7 +712,7 @@ export default function App(){
       <div style={{maxWidth:560,width:"100%",textAlign:"center",animation:"fadeUp .5s ease"}}>
         <div style={{fontSize:44,marginBottom:6}}>🎓</div>
         <h1 style={{fontSize:28,fontWeight:800,background:"linear-gradient(135deg,"+T.pri+",#7c3aed)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:6}}>OberstufenCheck NRW</h1>
-        <p style={{color:T.txL,fontSize:16,marginBottom:4,fontWeight:400}}>Schullaufbahnplaner für die gymnasiale Oberstufe</p>
+        <p style={{color:T.txL,fontSize:16,marginBottom:4,fontWeight:400}}>Schullaufbahnplaner für die Oberstufe an Gymnasien und Gesamtschulen</p>
         <p style={{color:T.txL,fontSize:12,marginBottom:12,fontWeight:400,lineHeight:1.5}}>Fächerwahl, Leistungskurse & Abiturfächer planen · APO-GOSt-Regelprüfung · Auf jedem Gerät</p>
         <button onClick={function(){setShowHelp(true);}} style={{marginBottom:28,padding:"6px 16px",borderRadius:20,border:"1px solid "+T.bdr,backgroundColor:T.card,color:T.txL,cursor:"pointer",fontSize:12,fontWeight:500}}>❓ Hilfe & Begriffe</button>
 
