@@ -842,7 +842,6 @@ export default function App(){
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
           <button onClick={function(){setShowHelp(true);}} style={{padding:"5px 12px",borderRadius:8,border:"none",backgroundColor:"rgba(255,255,255,.15)",color:"#fff",cursor:"pointer",fontSize:12,fontWeight:500}}>{"❓ Hilfe"}</button>
           <button onClick={function(){setMode("choose");}} style={{padding:"5px 12px",borderRadius:8,border:"none",backgroundColor:"rgba(255,255,255,.15)",color:"#fff",cursor:"pointer",fontSize:12,fontWeight:500}}>{"← Startseite"}</button>
-          {ws>0&&<button onClick={function(){setMode("wizard");}} style={{padding:"5px 12px",borderRadius:8,border:"none",backgroundColor:"rgba(255,255,255,.15)",color:"#fff",cursor:"pointer",fontSize:12,fontWeight:500}}>{"🧭 Zurück zur Schrittansicht"}</button>}
           <Tag c={schwColor(schwE)} bg={schwBg(schwE)}>{schwE.bd?"⚖️ Offen":schwE.sp?"🌐 Sprachlich":schwE.nw?"🔬 NaWi":"⚠ Schwerpunkt?"}</Tag>
           <Tag c={val.errors.length>0?"#fecaca":"#bbf7d0"} bg={val.errors.length>0?"rgba(239,68,68,.2)":"rgba(16,185,129,.2)"}>{val.errors.length===0?"✓ OK":val.errors.length+" Fehler"}</Tag>
         </div>
@@ -853,8 +852,9 @@ export default function App(){
             {EL.map(function(l,i){return <button key={i} onClick={function(){setETab(i);}} style={{padding:"6px 14px",borderRadius:10,border:"none",cursor:"pointer",fontSize:12,fontWeight:eTab===i?700:500,backgroundColor:eTab===i?T.pri:T.card,color:eTab===i?"#fff":T.tx,transition:"all .15s",boxShadow:eTab===i?"0 2px 8px rgba(108,43,217,.15)":"none"}}>{l}</button>;})}
           </div>
           <div style={{backgroundColor:T.card,borderRadius:16,padding:16,border:"1px solid "+T.bdr,boxShadow:"0 2px 12px rgba(0,0,0,.03)",animation:"fadeUp .3s ease"}}>{renderET()}</div>
-          <div className="noP" style={{display:"flex",justifyContent:"space-between",marginTop:8}}>
+          <div className="noP" style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:8}}>
             <button onClick={function(){setETab(Math.max(0,eTab-1));}} disabled={eTab===0} style={{padding:"6px 14px",borderRadius:8,border:"1px solid "+T.bdr,backgroundColor:T.card,fontSize:12,cursor:"pointer",opacity:(eTab===0) ? 0.4 : 1}}>{"←"}</button>
+            {ws>0&&<button onClick={function(){setMode("wizard");}} style={{padding:"6px 14px",borderRadius:8,border:"1px solid "+T.pri,backgroundColor:T.priL,color:T.pri,fontSize:12,cursor:"pointer",fontWeight:600}}>{"🧭 Schritt für Schritt"}</button>}
             <button onClick={function(){setETab(Math.min(5,eTab+1));}} disabled={eTab===5} style={{padding:"6px 14px",borderRadius:8,border:"none",backgroundColor:T.pri,color:"#fff",fontSize:12,cursor:"pointer",opacity:(eTab===5) ? 0.4 : 1}}>{"→"}</button>
           </div>
         </div>
@@ -923,7 +923,7 @@ export default function App(){
     case"gesellschaftswiss":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Gesellschaftswissenschaft (GW) 🌐</h2>
       <p style={{fontSize:13,color:T.txL,marginBottom:5}}>Wähle ein GW-Fach, das du durchgehend bis zum Abitur belegen möchtest.</p>
       <p style={{fontSize:13,color:T.txL,marginBottom:12}}>Geschichte und SoWi müssen beide in der Qualifikationsphase vorkommen – entweder als reguläres Fach in der EF und Q1 oder als Zusatzkurs in der Q2.</p>
-      <Chips options={vf.filter(function(id){return FM[id]&&FM[id].tp==="gw"&&!(id==="PL"&&(a.religion==="KR"||a.religion==="ER"));}).map(function(id){var d="";if(id==="GE")d="→ Kein ZK Geschichte nötig, aber ZK SoWi in Q2";if(id==="SW")d="→ Kein ZK SoWi nötig, aber ZK Geschichte in Q2";if(id!=="GE"&&id!=="SW")d="→ ZK Geschichte + SoWi in Q2 nötig";return{id:id,label:FM[id].n,desc:d};})} selected={a.gesellschaftswiss} onSelect={function(id){sA("gesellschaftswiss",id);}}/>
+      <Chips options={vf.filter(function(id){return FM[id]&&FM[id].tp==="gw"&&!(id==="PL"&&(a.religion==="KR"||a.religion==="ER"));}).map(function(id){return{id:id,label:FM[id].n};})} selected={a.gesellschaftswiss} onSelect={function(id){sA("gesellschaftswiss",id);}}/>
       {a.religion==="PL_ersatz"&&a.gesellschaftswiss==="PL"&&<ErrBox>Philosophie kann nicht gleichzeitig Ersatzfach und einziges GW-Fach sein. Bitte anderes GW-Fach wählen!</ErrBox>}
       <Hint>Du kannst diese Wahl später im Plan noch anpassen.</Hint>
     </div>;
@@ -1004,7 +1004,7 @@ export default function App(){
         <div style={{marginBottom:14}}><div style={{fontSize:10.5,fontWeight:700,color:T.txL,marginBottom:4,letterSpacing:".06em",textTransform:"uppercase"}}>AUTOMATISCH GESETZT</div><div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{pK.map(function(id){return <Tag key={id} c={T.ok} bg={T.okBg}>{"✓ "+(FM[id]?FM[id].n:id)}</Tag>;})}</div></div>
         <div style={{marginBottom:14}}><div style={{fontSize:13,fontWeight:600,marginBottom:5}}>GW-Klausurfächer (mind. 1):</div><Chips multi options={gwO.map(function(id){return{id:id,label:FM[id].n};})} selected={a.klGW||[]} onSelect={function(id){togM("klGW",id);}}/></div>
         <div style={{marginBottom:14}}><div style={{fontSize:13,fontWeight:600,marginBottom:5}}>NaWi-Klausurfächer (mind. 1):</div><Chips multi options={nwO.map(function(id){return{id:id,label:FM[id].n};})} selected={a.klNW||[]} onSelect={function(id){togM("klNW",id);}}/></div>
-        <Warn><strong>Wichtig:</strong> Nur Klausurfächer können später Abiturfächer werden! Wenn du ein Fach als mögliches Abi im Hinterkopf hast, wähle es jetzt schriftlich.</Warn>
+        <Warn><strong>Wichtig:</strong> Nur Klausurfächer können später Abiturfächer werden! Wenn du ein Fach als mögliches Abifach im Hinterkopf hast, wähle es jetzt schriftlich.</Warn>
         <Hint>In der Q-Phase müssen alle 4 Abiturfächer durchgehend schriftlich belegt werden. Fang also früh an, Klausuren zu schreiben in Fächern, die dich interessieren.</Hint>
       </div>;}
     case"leistungskurse":{var lIds=gewIds.filter(function(id){return FM[id]&&FM[id].lk&&FM[id].tp!=="nfs"&&vfLK.indexOf(id)>=0;});
@@ -1032,46 +1032,63 @@ export default function App(){
         {a.abi3&&a.abi4&&dmfs.length<2&&<Warn>Du brauchst mindestens 2 der Fächer Deutsch, Mathe oder eine Fremdsprache unter deinen 4 Abifächern.</Warn>}
         <Hint>Sport kann nur 4. Abiturfach (mündlich) sein. Literatur kann nicht Abiturfach sein. Die endgültige Festlegung erfolgt zu Beginn von Q2.</Hint>
       </div>;}
-    case"ergebnis":return <div><h2 style={{fontSize:22,fontWeight:800,color:T.pri,marginTop:0}}>{wVal&&wVal.errors.length===0?"Dein Plan steht! 🎉":wVal&&wVal.errors.length===1?"Fast fertig – noch 1 Punkt":"Fast fertig – noch "+wVal.errors.length+" Punkte"}</h2>
-      {wVal&&wVal.errors.length>0&&<div style={{padding:14,borderRadius:12,backgroundColor:T.errBg,marginBottom:12,border:"1px solid #fecaca"}}>
-        <div style={{fontSize:13,fontWeight:700,color:T.err,marginBottom:6}}>Das musst du noch ändern:</div>
-        {wVal.errors.map(function(m,i){var cl=m.replace(/ → Tab [\w+\/]+$/,"");return <div key={i} style={{fontSize:12.5,color:T.err,marginBottom:3,paddingLeft:16,position:"relative"}}><span style={{position:"absolute",left:0}}>{"✗"}</span>{cl}</div>;})}
-        <p style={{fontSize:12,color:T.txL,marginTop:8}}>Geh zurück und passe die entsprechenden Schritte an, oder bearbeite den Plan direkt im Detail.</p>
+    case"ergebnis":{
+      var hasErr=wVal&&wVal.errors.length>0;
+      var hasWarn=wVal&&wVal.warnings.length>0;
+      var allOk=wVal&&wVal.errors.length===0;
+      return <div>
+      {/* 1. Titel */}
+      <h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0,marginBottom:12}}>{allOk?"Dein Plan steht! 🎉":"Fast fertig!"}</h2>
+
+      {/* 2. Zusammenfassung: LK, Abi, Schwerpunkt, Stunden */}
+      <div style={{padding:12,borderRadius:12,backgroundColor:T.card,border:"1px solid "+T.bdr,marginBottom:12}}>
+        <div style={{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap"}}>
+          <Tag bg={T.priL} c={T.pri}>{"LK: "+(FM[a.lk1]?FM[a.lk1].n:"")+" + "+(FM[a.lk2]?FM[a.lk2].n:"")}</Tag>
+          <Tag bg={T.priL} c={T.pri}>{"3. "+(FM[a.abi3]?FM[a.abi3].n:"")}</Tag>
+          <Tag bg={T.priL} c={T.pri}>{"4. "+(FM[a.abi4]?FM[a.abi4].n:"")}</Tag>
+        </div>
+        <div style={{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap"}}>
+          <Tag bg={schwBg(schw)} c={schwColor(schw)}>{schw.bd?"⚖️ Beide Schwerpunkte offen":schw.sp?"🌐 Sprachlich":schw.nw?"🔬 NaWi":"⚠ ?"}</Tag>
+          <Tag bg={stunden>36?T.warnBg:T.priL} c={stunden>36?T.warn:T.pri}>{"EF: "+stunden+" Std."}</Tag>
+          <Tag bg={stundenQ>38?T.warnBg:T.priL} c={stundenQ>38?T.warn:T.pri}>{"Q: "+stundenQ+" Std."}</Tag>
+          <Tag bg={allOk?T.okBg:T.errBg} c={allOk?T.ok:T.err}>{allOk?"✓ Regelkonform":wVal.errors.length+" Fehler"}</Tag>
+        </div>
+        <div style={{fontSize:12,color:T.txL,lineHeight:1.5}}>
+          <strong>Fächer ({gewIds.length}):</strong> {gewIds.map(function(id){return FM[id]?FM[id].n:id;}).join(" • ")}
+        </div>
+      </div>
+
+      {/* 3. Fehler (wenn vorhanden) */}
+      {hasErr&&<div style={{padding:12,borderRadius:10,backgroundColor:T.errBg,marginBottom:10,border:"1px solid #fecaca"}}>
+        <div style={{fontSize:12,fontWeight:700,color:T.err,marginBottom:4}}>Das musst du noch ändern:</div>
+        {wVal.errors.map(function(m,i){var cl=m.replace(/ → Tab [\w+\/]+$/,"");return <div key={i} style={{fontSize:11.5,color:T.err,marginBottom:2,paddingLeft:14,position:"relative"}}><span style={{position:"absolute",left:0}}>{"✗"}</span>{cl}</div>;})}
       </div>}
-      {wVal&&wVal.warnings.length>0&&<div style={{padding:12,borderRadius:10,backgroundColor:T.warnBg,marginBottom:12,border:"1px solid #fde68a"}}>
-        <div style={{fontSize:12,fontWeight:600,color:T.warn,marginBottom:4}}>Hinweise ({wVal.warnings.length}):</div>
-        {wVal.warnings.map(function(m,i){var cl=m.replace(/ → Tab [\w+\/]+$/,"");return <div key={i} style={{fontSize:11.5,color:T.warn,marginBottom:2}}>{"⚠ "+cl}</div>;})}
+
+      {/* 4. Warnungen (wenn vorhanden) */}
+      {hasWarn&&<div style={{padding:10,borderRadius:10,backgroundColor:T.warnBg,marginBottom:10,border:"1px solid #fde68a"}}>
+        <div style={{fontSize:11,fontWeight:600,color:T.warn,marginBottom:3}}>{hasWarn&&!hasErr?"Dein Plan ist gültig, aber es gibt Hinweise:":"Hinweise:"}</div>
+        {wVal.warnings.map(function(m,i){var cl=m.replace(/ → Tab [\w+\/]+$/,"");return <div key={i} style={{fontSize:11,color:T.warn,marginBottom:2}}>{"⚠ "+cl}</div>;})}
+        {!hasErr&&<div style={{fontSize:11,color:T.txL,marginTop:6}}>Diese Hinweise kannst du im nächsten Schritt korrigieren (z.B. Wochenstunden reduzieren).</div>}
       </div>}
-      {wVal&&wVal.errors.length===0&&<div style={{padding:16,borderRadius:12,backgroundColor:T.okBg,marginBottom:12,border:"1px solid #a7f3d0",textAlign:"center"}}>
-        <div style={{fontSize:36,marginBottom:4}}>{"🎯"}</div>
-        <div style={{fontSize:17,fontWeight:700,color:T.ok}}>Alle Regeln erfüllt – dein Plan ist gültig!</div>
-        <div style={{fontSize:12,color:T.txL,marginTop:4}}>Besprich ihn jetzt mit deiner Beratungslehrkraft.</div>
+
+      {/* 5. Erfolg nur wenn KEINE Warnungen und KEINE Fehler */}
+      {allOk&&!hasWarn&&<div style={{padding:14,borderRadius:10,backgroundColor:T.okBg,marginBottom:10,border:"1px solid #a7f3d0",textAlign:"center"}}>
+        <div style={{fontSize:15,fontWeight:700,color:T.ok}}>✓ Alle Regeln erfüllt – keine offenen Punkte!</div>
       </div>}
-      <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
-        <Tag bg={T.priL} c={T.pri}>{"LK: "+(FM[a.lk1]?FM[a.lk1].n:"")+" + "+(FM[a.lk2]?FM[a.lk2].n:"")}</Tag>
-        <Tag bg={T.priL} c={T.pri}>{"3. "+(FM[a.abi3]?FM[a.abi3].n:"")}</Tag>
-        <Tag bg={T.priL} c={T.pri}>{"4. "+(FM[a.abi4]?FM[a.abi4].n:"")}</Tag>
-        <Tag bg={schwBg(schw)} c={schwColor(schw)}>{schw.bd?"⚖️ Beide Schwerpunkte offen":schw.sp?"🌐 Sprachlicher Schwerpunkt":schw.nw?"🔬 Naturwiss. Schwerpunkt":"⚠ Schwerpunkt?"}</Tag>
+
+      {/* 6. Nächster Schritt */}
+      <div style={{padding:12,borderRadius:10,backgroundColor:T.infoBg,marginBottom:12,fontSize:12,color:T.tx,lineHeight:1.6}}>
+        <strong>Nächster Schritt:</strong> Im Detail-Modus siehst du deinen Plan als Tabelle mit allen Halbjahren (EF.1 bis Q2.2). Dort kannst du Fächer anpassen, Wochenstunden korrigieren und den Plan fertigstellen.<br/>
+        <span style={{color:T.txL}}>Dieser Plan ersetzt nicht die Beratung durch deine Schule.</span>
       </div>
-      {stunden>36&&<Warn><strong>{stunden} Wochenstunden</strong> – erlaubt sind 32–36. Im nächsten Schritt kannst du Wahlfächer abwählen, um die Stundenzahl zu reduzieren.</Warn>}
-      <div style={{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}>
-        <Tag bg={stunden>36?T.warnBg:T.priL} c={stunden>36?T.warn:T.pri}>{"EF: "+stunden+"h"}</Tag>
-        <Tag bg={stundenQ>38?T.warnBg:T.priL} c={stundenQ>38?T.warn:T.pri}>{"Q: "+stundenQ+"h (mit LK)"}</Tag>
-      </div>
-      <div style={{fontSize:13,color:T.txL,marginBottom:16,lineHeight:1.6}}>
-        <strong>Deine Fächer ({gewIds.length}):</strong> {gewIds.map(function(id){return FM[id]?FM[id].n:id;}).join(" • ")}
-      </div>
-      <div style={{padding:12,borderRadius:10,backgroundColor:T.infoBg,marginBottom:14,fontSize:12.5,color:T.tx,lineHeight:1.6}}>
-        <strong>Wie geht es weiter?</strong><br/>
-        Dein Plan ist ein <strong>erster Entwurf</strong> – du kannst ihn jederzeit anpassen. Im nächsten Schritt siehst du deinen Plan als Tabelle mit allen Halbjahren (EF.1 bis Q2.2). Dort kannst du Fächer gezielt an- und abwählen, Wochenstunden anpassen und den Plan fertigstellen.<br/><br/>
-        <strong>Wichtig:</strong> Dieser Plan ersetzt nicht die offizielle Beratung! Besprich deine Fächerwahl unbedingt mit der Beratungslehrkraft deiner Schule. Die verbindliche Anmeldung erfolgt über die Schule.
-      </div>
+
+      {/* 7. Buttons */}
       <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
         <Btn big onClick={function(){if(wPlan){setBl(wPlan.bl);setLk(wPlan.lk);setAb(wPlan.ab);setPr(function(p2){return Object.assign({},p2,{bildungsgang:a.bildungsgang||"G9",hat2FSSekI:!!(a.fremdsprachen&&a.fremdsprachen.length>=2),befreitReligion:a.religion==="PL_ersatz"});});setETab(5);setMode("expert");}}}>📊 Plan bearbeiten & fertigstellen</Btn>
         <Btn big outline onClick={function(){if(wPlan)expJSON({v:VERSION,d:VDATE,bl:wPlan.bl,lk:wPlan.lk,ab:wPlan.ab,vf:vf,vfLK:vfLK,schule:schule,wizard:a});}}>💾 Plan als Datei speichern</Btn>
       </div>
       <AppFooter showFeedback onInfo={setInfoPage} />
-    </div>;
+    </div>;}
     default:return null;
   }}
 
@@ -1093,25 +1110,25 @@ export default function App(){
           <button onClick={function(){setMode("choose");}} style={{padding:"5px 12px",borderRadius:8,border:"none",backgroundColor:"rgba(255,255,255,.15)",color:"#fff",cursor:"pointer",fontSize:11.5,fontWeight:500}}>{"← Startseite"}</button>
         </div>
       </div>
-      {/* Progress */}
-      <div style={{display:"flex",gap:2,padding:"6px 16px",backgroundColor:T.bg}}>
-        {STEPS.map(function(st,i){
-          var done=i<ws;var cur=i===ws;var canJump=i<ws;
-          return <div key={i} onClick={function(){if(canJump)setWs(i);}}
-            style={{flex:1,height:4,borderRadius:2,cursor:canJump?"pointer":"default",
-              backgroundColor:done?T.pri:cur?T.acc:T.bdr,
-              transition:"all .3s",opacity:done||cur?1:0.5}}
-            title={STEPS[i]}/>;
-        })}
+      {/* Progress + Navigation */}
+      <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 16px",backgroundColor:T.bg}}>
+        {ws>0&&<button onClick={function(){setWs(Math.max(0,ws-1));}} style={{padding:"4px 10px",borderRadius:6,border:"1px solid "+T.bdr,backgroundColor:T.card,fontSize:11,cursor:"pointer",whiteSpace:"nowrap",fontWeight:500}}>{"←"}</button>}
+        <div style={{display:"flex",gap:2,flex:1}}>
+          {STEPS.map(function(st,i){
+            var done=i<ws;var cur=i===ws;var canJump=i<ws;
+            return <div key={i} onClick={function(){if(canJump)setWs(i);}}
+              style={{flex:1,height:8,borderRadius:4,cursor:canJump?"pointer":"default",
+                backgroundColor:done?T.pri:cur?T.acc:T.bdr,
+                transition:"all .3s",opacity:done||cur?1:0.4}}
+              title={STEPS[i]}/>;
+          })}
+        </div>
+        {sid!=="ergebnis"&&<button onClick={function(){if(canN())setWs(ws+1);}} disabled={!canN()} style={{padding:"4px 10px",borderRadius:6,border:"none",backgroundColor:canN()?T.pri:"#e0dce8",color:canN()?"#fff":"#aaa",fontSize:11,cursor:canN()?"pointer":"default",whiteSpace:"nowrap",fontWeight:600}}>{"→"}</button>}
       </div>
       {/* Content */}
       <div className="wizWrap">
         <div className="wizCard">
           {renderWiz()}
-        </div>
-        <div style={{display:"flex",justifyContent:"space-between"}}>
-          {ws>0?<Btn outline onClick={function(){setWs(Math.max(0,ws-1));}}>{"← Zurück"}</Btn>:<div/>}
-          {sid!=="ergebnis"&&<Btn onClick={function(){if(canN())setWs(ws+1);}} disabled={!canN()}>Weiter →</Btn>}
         </div>
       </div>
       <InfoOverlay page={infoPage} onClose={function(){setInfoPage(null);}} />
