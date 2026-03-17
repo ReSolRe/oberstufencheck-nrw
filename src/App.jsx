@@ -172,7 +172,7 @@ function doVal(bl,lk,ab,vf,pr){
   var relPh=rel.concat(pr&&pr.befreitReligion&&vf.indexOf("PL")>=0?["PL"]:[]);
   if(!h2a(relPh,QH))W.push("Religion oder Philosophie sollte mindestens 2 Halbjahre in der Q-Phase belegt werden → Tab Q1+Q2");
   var stdHJ=function(hj){return vf.filter(function(id){return b(id,hj);}).reduce(function(s,id){var isLK=QH.indexOf(hj)>=0&&(lk.lk1===id||lk.lk2===id);return s+(isLK?5:(FM[id]?FM[id].h:3));},0);};
-  HJ.forEach(function(hj){var s=stdHJ(hj);var tab=hj.indexOf("EF")===0?" → Tab EF":" → Tab Q1+Q2";if(s>0&&s>36)W.push(hj+": "+s+" Wochenstunden – das sind "+(s-36)+" zu viel (max. 36)"+tab);if(s>0&&s<32)W.push(hj+": Erst "+s+" Wochenstunden – du brauchst mindestens 32"+tab);});
+  HJ.forEach(function(hj){var s=stdHJ(hj);var tab=hj.indexOf("EF")===0?" → Tab EF":" → Tab Q1+Q2";if(s>0&&s>36)W.push(hj+": "+s+" Wochenstunden – empfohlen sind 32–36 (Absprache mit Schule nötig)"+tab);if(s>0&&s<32)W.push(hj+": Erst "+s+" Wochenstunden – du brauchst mindestens 32"+tab);});
   // Lücken-Erkennung: Pflichtfächer und Abiturfächer dürfen keine Halbjahre aussetzen
   var checkGap=function(id,label){
     var belegt=HJ.map(function(hj){return b(id,hj);});
@@ -322,7 +322,7 @@ function HelpOverlay(p){
     {q:"Was bedeutet 2-aus-3?",a:"Mindestens 2 deiner 4 Abiturfächer müssen Deutsch, Mathematik oder eine Fremdsprache sein."},
     {q:"Was sind Aufgabenfelder (AF)?",a:"AF I = sprachlich-literarisch-künstlerisch (Deutsch, Fremdsprachen, Kunst, Musik). AF II = gesellschaftswissenschaftlich (Geschichte, SoWi, Erdkunde usw.). AF III = mathematisch-naturwissenschaftlich (Mathe, Bio, Physik, Chemie, Info). Alle 3 AF müssen in deinen Abiturfächern vorkommen."},
     {q:"Was sind Zusatzkurse?",a:"Wer Geschichte oder SoWi nicht bis Q2 belegt, muss im letzten Jahr einen Zusatzkurs (2 Halbjahre) im jeweils anderen Fach belegen."},
-    {q:"Wie viele Stunden pro Woche?",a:"Ziel: ~34 Wochenstunden pro Halbjahr (Toleranz: 32–36). In der Q-Phase zählen LKs mit 5 statt 3 Stunden."},
+    {q:"Wie viele Stunden pro Woche?",a:"Ziel: ca. 34 Wochenstunden pro Halbjahr (empfohlener Korridor: 32–36). Abweichungen sind in Absprache mit der Schule möglich. In der Q-Phase zählen LKs mit 5 statt 3 Stunden."},
     {q:"Kann ich ein abgewähltes Fach wieder aufnehmen?",a:"Nein. Kurse in der Oberstufe sind Folgekurse (§6 Abs. 6). Ein einmal abgewähltes Fach kann nicht wieder belegt werden. Ausnahmen: Literatur und Zusatzkurse GE/SW, die erst in der Q-Phase starten."},
     {q:"Was passiert mit meinen Daten?",a:"Alles bleibt in deinem Browser. Es werden keine Daten an einen Server geschickt. Du kannst deinen Plan als JSON-Datei speichern und später wieder laden."},
     {q:"Kann ich Religion und Philosophie gleichzeitig belegen?",a:"Nein – an den allermeisten Schulen liegen Religion und Philosophie auf dem gleichen Zeitslot. Du wählst eines von beiden."},
@@ -886,11 +886,11 @@ export default function App(){
     case"schule":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Deine Schule einrichten {"🏫"}</h2>
         {schule.name?<div style={{padding:"10px 14px",borderRadius:12,backgroundColor:T.okBg,marginBottom:12,fontSize:13,color:T.ok,border:"1px solid #86efac"}}>✓ Schulprofil geladen: <strong>{schule.name}</strong>{schule.jahr?" ("+schule.jahr+")":""}{schule.stand?" – Stand: "+schule.stand:""}</div>
         :<div><p style={{fontSize:13,color:T.txL,marginBottom:5,lineHeight:1.6}}>Die Grundfächer sind schon ausgewählt. Füge hinzu, was deine Schule <strong>zusätzlich</strong> anbietet.</p>
-        <Hint>Hat deine Schule ein Schulprofil mit OberstufenCheck erstellt? Gehe über ← Startseite zurück und lade es dort. Das ist keine LuPO-Datei, sondern eine eigene .json-Datei aus diesem Tool.</Hint></div>}
+        </div>}
         <div style={{fontSize:12,fontWeight:700,color:T.txL,marginBottom:8,letterSpacing:".03em"}}>FÄCHERANGEBOT</div>
         {["I","II","III","X"].map(function(af){return <div key={af} style={{marginBottom:10}}><div style={{fontSize:10,fontWeight:700,color:T.txL,textTransform:"uppercase",marginBottom:4,letterSpacing:".05em"}}>{af!=="X"?"AF "+af:"Sonstige"}</div><div style={{display:"flex",flexWrap:"wrap",gap:5}}>{FAE.filter(function(f){return f.af===af;}).map(function(f){var act=vf.indexOf(f.id)>=0;var isMin=DEFVF.indexOf(f.id)>=0;return <button key={f.id} onClick={function(){setVf(function(p2){var nv=act?p2.filter(function(x){return x!==f.id;}):p2.concat([f.id]);setVfLK(function(lks){return lks.filter(function(x){return nv.indexOf(x)>=0;});});return nv;});}} style={{padding:"6px 14px",borderRadius:20,border:"2px solid "+(act?T.pri:"transparent"),backgroundColor:act?T.priL:"#f4f2fa",color:act?T.pri:T.txL,cursor:"pointer",fontSize:12,fontWeight:act?600:400,transition:"all .15s"}}>{(act?"✓ ":"")+f.n+(isMin&&act?" •":"")}</button>;})}</div></div>;})}
         <div style={{marginTop:16,paddingTop:14,borderTop:"2px solid "+T.bdr}}>
-          <div style={{fontSize:12,fontWeight:700,color:T.txL,marginBottom:6,letterSpacing:".03em"}}>WELCHE FÄCHER BIETET DEINE SCHULE ALS LK AN?</div>
+          <div style={{fontSize:12,fontWeight:700,color:T.txL,marginBottom:6,letterSpacing:".03em"}}>WELCHE FÄCHER BIETET DEINE SCHULE ALS LEISTUNGSKURS (LK) AN?</div>
           <p style={{fontSize:13,color:T.txL,marginBottom:10}}>Nicht jede Schule bietet jedes Fach als LK an. Wähle hier die Fächer, die an deiner Schule als Leistungskurs angeboten werden.</p>
           <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
             {vf.filter(function(id){return FM[id]&&FM[id].lk;}).map(function(id){var act=vfLK.indexOf(id)>=0;return <button key={id} onClick={function(){setVfLK(function(p2){return act?p2.filter(function(x){return x!==id;}):p2.concat([id]);});}} style={{padding:"5px 12px",borderRadius:16,border:"2px solid "+(act?"#06b6d4":"transparent"),backgroundColor:act?"#cffafe":"#f4f2fa",color:act?"#0e7490":T.txL,cursor:"pointer",fontSize:11.5,fontWeight:act?600:400}}>{(act?"✓ ":"")+FM[id].n}</button>;})}
@@ -991,7 +991,7 @@ export default function App(){
                 </button>;})}</div>
             </div>;
           })}
-        {stunden>36&&<Warn>Du hast <strong>{stunden} Wochenstunden</strong> – erlaubt sind 32–36. Wähle weniger Wahlfächer ab, um in den Zielbereich zu kommen.</Warn>}
+        {stunden>36&&<Warn>Du hast <strong>{stunden} Wochenstunden</strong> – empfohlen sind 32–36. Sprich mit deiner Schule, ob das möglich ist, oder wähle Wahlfächer ab.</Warn>}
         {stunden<32&&<Warn>Erst <strong>{stunden} Wochenstunden</strong> – du brauchst mindestens 32. Wähle weitere Fächer.</Warn>}
         {!schw.ok&&stunden>=30&&<Warn>Dir fehlt noch der <strong>Schwerpunkt</strong>: Wähle entweder eine 2. Fremdsprache oder ein 2. NaWi/Tech-Fach.</Warn>}
         {(a.weitereFaecher||[]).some(function(id){return FM[id]&&FM[id].tp==="nfs";})&&<Hint>Du hast eine <strong>neu einsetzende Fremdsprache</strong> gewählt – die muss durchgehend von der EF bis Q2 belegt werden (4 Wochenstunden).</Hint>}
@@ -1130,6 +1130,10 @@ export default function App(){
         <div className="wizCard">
           {renderWiz()}
         </div>
+        {sid!=="ergebnis"&&<div style={{display:"flex",justifyContent:"space-between",gap:10,marginTop:4}}>
+          {ws>0?<button onClick={function(){setWs(Math.max(0,ws-1));}} style={{padding:"12px 24px",borderRadius:12,border:"2px solid "+T.bdr,backgroundColor:T.card,fontSize:14,cursor:"pointer",fontWeight:600,color:T.tx}}>{"← Zurück"}</button>:<div/>}
+          <button onClick={function(){if(canN())setWs(ws+1);}} disabled={!canN()} style={{padding:"12px 28px",borderRadius:12,border:"none",backgroundColor:canN()?T.pri:"#e0dce8",color:canN()?"#fff":"#aaa",fontSize:14,cursor:canN()?"pointer":"default",fontWeight:700,boxShadow:canN()?"0 4px 14px rgba(108,43,217,.2)":"none"}}>{"Weiter →"}</button>
+        </div>}
       </div>
       <InfoOverlay page={infoPage} onClose={function(){setInfoPage(null);}} />
       <HelpOverlay show={showHelp} onClose={function(){setShowHelp(false);}} />
