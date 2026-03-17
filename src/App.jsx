@@ -1,5 +1,5 @@
 /*
- * OberstufenCheck NRW – Schullaufbahnplaner für die Oberstufe an Gymnasien und Gesamtschulen
+ * OberstufenCheck NRW – Schullaufbahnplaner für die Oberstufe (Gymnasium & Gesamtschule)
  * © 2026 Gregor Steinke. Alle Rechte vorbehalten.
  * Lizenziert unter AGPL-3.0. Kommerzielle Nutzung nur mit schriftlicher Genehmigung.
  * https://www.gnu.org/licenses/agpl-3.0.html
@@ -354,7 +354,7 @@ function PrintHeader(p){
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
       <div>
         <h1 style={{fontSize:18,fontWeight:700,margin:0}}>OberstufenCheck NRW – Belegungsplan</h1>
-        <p style={{fontSize:11,color:"#666",margin:"4px 0 0"}}>{sc.name?sc.name+" – ":""}Oberstufe (Gesamtschule und Gymnasium){sc.jahr?" – SJ "+sc.jahr:""}</p>
+        <p style={{fontSize:11,color:"#666",margin:"4px 0 0"}}>{sc.name?sc.name+" – ":""}Gymnasiale Oberstufe{sc.jahr?" – SJ "+sc.jahr:""}</p>
       </div>
       <div style={{textAlign:"right",fontSize:11,color:"#666"}}>
         <div>Erstellt: {datum}</div>
@@ -394,6 +394,7 @@ function InfoOverlay(p){
         von Schüler:innen bei der Oberstufenplanung.
         Entwickelt als plattformunabhängige Alternative zum
         LuPO-Planungstool des Schulministeriums (nur Windows).
+        Die App gilt für Gymnasien und Gesamtschulen in NRW.
         Dieses Tool ersetzt nicht die offizielle Beratung
         durch die Oberstufenkoordination der Schule.
         Alle Angaben ohne Gewähr.
@@ -558,9 +559,9 @@ export default function App(){
     // Abiturfächer sind schriftlich
     if(ab.a3)m[ab.a3]=true;if(ab.a4)m[ab.a4]=true;
     // Wizard: gewählte GW/NaWi Klausurfächer
-    if(wa.klGW)m[wa.klGW]=true;if(wa.klNW)m[wa.klNW]=true;
+    (Array.isArray(wa.klGW)?wa.klGW:wa.klGW?[wa.klGW]:[]).forEach(function(id){m[id]=true;});(Array.isArray(wa.klNW)?wa.klNW:wa.klNW?[wa.klNW]:[]).forEach(function(id){m[id]=true;});
     return m;
-  },[vf,lk,ab,wa.klGW,wa.klNW]);
+  },[vf,lk,ab,JSON.stringify(wa.klGW),JSON.stringify(wa.klNW)]);
   // Gefilterte Fächerliste für Matrix
   var vfX=useMemo(function(){
     var hatKR=eBl.KR&&HJ.some(function(h){return eBl.KR[h];});
@@ -712,7 +713,7 @@ export default function App(){
       <div style={{maxWidth:560,width:"100%",textAlign:"center",animation:"fadeUp .5s ease"}}>
         <div style={{fontSize:44,marginBottom:6}}>🎓</div>
         <h1 style={{fontSize:28,fontWeight:800,background:"linear-gradient(135deg,"+T.pri+",#7c3aed)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:6}}>OberstufenCheck NRW</h1>
-        <p style={{color:T.txL,fontSize:16,marginBottom:4,fontWeight:400}}>Schullaufbahnplaner für die Oberstufe an Gymnasien und Gesamtschulen</p>
+        <p style={{color:T.txL,fontSize:16,marginBottom:4,fontWeight:400}}>Schullaufbahnplaner für die Oberstufe (Gymnasium & Gesamtschule)</p>
         <p style={{color:T.txL,fontSize:12,marginBottom:12,fontWeight:400,lineHeight:1.5}}>Fächerwahl, Leistungskurse & Abiturfächer planen · APO-GOSt-Regelprüfung · Auf jedem Gerät</p>
         <button onClick={function(){setShowHelp(true);}} style={{marginBottom:28,padding:"6px 16px",borderRadius:20,border:"1px solid "+T.bdr,backgroundColor:T.card,color:T.txL,cursor:"pointer",fontSize:12,fontWeight:500}}>❓ Hilfe & Begriffe</button>
 
@@ -746,7 +747,7 @@ export default function App(){
 
         {schule.name&&<div style={{marginTop:12,padding:"10px 16px",borderRadius:12,backgroundColor:"#ecfdf5",fontSize:13,color:T.ok,textAlign:"center",border:"1px solid #bbf7d0"}}>🏫 {schule.name}{schule.jahr?" – "+schule.jahr:""}{schule.stand?" ("+schule.stand+")":""}</div>}
         <label style={{display:"block",marginTop:schule.name?8:14,textAlign:"center",cursor:"pointer"}}>
-          <span style={{fontSize:12,color:T.txL,textDecoration:"underline"}}>🏫 Fächerangebot deiner Schule laden</span>
+          <span style={{fontSize:12,color:T.txL,textDecoration:"underline"}}>🏫 Schulprofil aus OberstufenCheck laden</span>
           <input type="file" accept=".json" onChange={impSchule} style={{display:"none"}}/>
         </label>
 
@@ -773,12 +774,12 @@ export default function App(){
         </div>
         <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
           <Btn onClick={expSchule}>📤 Fächerangebot als Datei speichern</Btn>
-          <label style={{cursor:"pointer"}}><Btn outline>📥 Fächerangebot laden</Btn><input type="file" accept=".json" onChange={impSchule} style={{display:"none"}}/></label>
+          <label style={{cursor:"pointer"}}><Btn outline>📥 Schulprofil aus OberstufenCheck laden</Btn><input type="file" accept=".json" onChange={impSchule} style={{display:"none"}}/></label>
         </div>
-        <Hint>Das Schulprofil (Fächer + LK-Angebot) kann als Datei gespeichert und an Mitschüler:innen weitergegeben werden. Das Angebot kann sich von Jahr zu Jahr ändern.</Hint>
+        <Hint>Wenn deine Schule oder Beratungslehrkraft ein Schulprofil mit OberstufenCheck erstellt hat, kannst du es hier laden. Es enthält das Fächerangebot und die LK-Möglichkeiten deiner Schule.</Hint>
         <div style={{marginTop:14,fontSize:12,fontWeight:700,color:T.txL,marginBottom:6}}>FÄCHERANGEBOT</div>
         {["I","II","III","X"].map(function(af){return <div key={af} style={{marginBottom:10}}><div style={{fontSize:10,fontWeight:700,color:T.txL,textTransform:"uppercase",marginBottom:4,letterSpacing:".05em"}}>{af!=="X"?"AF "+af:"Sonstige"}</div><div style={{display:"flex",flexWrap:"wrap",gap:4}}>{FAE.filter(function(f){return f.af===af;}).map(function(f){var act=vf.indexOf(f.id)>=0;return <button key={f.id} onClick={function(){setVf(function(p2){var nv=act?p2.filter(function(x){return x!==f.id;}):p2.concat([f.id]);setVfLK(function(lks){return lks.filter(function(x){return nv.indexOf(x)>=0;});});return nv;});}} style={{padding:"5px 12px",borderRadius:20,border:"2px solid "+(act?T.pri:"transparent"),backgroundColor:act?T.priL:"#f4f2fa",color:act?T.pri:T.txL,cursor:"pointer",fontSize:11.5,fontWeight:act?600:400,transition:"all .15s"}}>{(act?"✓ ":"")+f.n}</button>;})}</div></div>;})}
-        <div style={{marginTop:12,paddingTop:10,borderTop:"2px solid "+T.bdr}}><div style={{fontSize:11,fontWeight:700,color:T.txL,marginBottom:6}}>DAVON ALS LK / ABITURFACH</div><div style={{display:"flex",flexWrap:"wrap",gap:4}}>{vf.filter(function(id){return FM[id]&&FM[id].lk;}).map(function(id){var act=vfLK.indexOf(id)>=0;return <button key={id} onClick={function(){setVfLK(function(p2){return act?p2.filter(function(x){return x!==id;}):p2.concat([id]);});}} style={{padding:"4px 10px",borderRadius:14,border:"2px solid "+(act?"#06b6d4":"transparent"),backgroundColor:act?"#cffafe":"#f4f2fa",color:act?"#0e7490":T.txL,cursor:"pointer",fontSize:11,fontWeight:act?600:400}}>{(act?"✓ ":"")+FM[id].n}</button>;})}</div></div>
+        <div style={{marginTop:12,paddingTop:10,borderTop:"2px solid "+T.bdr}}><div style={{fontSize:11,fontWeight:700,color:T.txL,marginBottom:6}}>DAVON ALS LK AN DEINER SCHULE WÄHLBAR</div><div style={{display:"flex",flexWrap:"wrap",gap:4}}>{vf.filter(function(id){return FM[id]&&FM[id].lk;}).map(function(id){var act=vfLK.indexOf(id)>=0;return <button key={id} onClick={function(){setVfLK(function(p2){return act?p2.filter(function(x){return x!==id;}):p2.concat([id]);});}} style={{padding:"4px 10px",borderRadius:14,border:"2px solid "+(act?"#06b6d4":"transparent"),backgroundColor:act?"#cffafe":"#f4f2fa",color:act?"#0e7490":T.txL,cursor:"pointer",fontSize:11,fontWeight:act?600:400}}>{(act?"✓ ":"")+FM[id].n}</button>;})}</div></div>
       </div>;
       case 1: return <div><h2 style={{fontSize:16,fontWeight:700,color:T.pri,marginTop:0,marginBottom:5}}>Dein Profil</h2>
         <p style={{fontSize:12,color:T.txL,marginBottom:10}}>Diese Angaben beeinflussen, welche Regeln geprüft werden.</p>
@@ -817,7 +818,7 @@ export default function App(){
         <PrintHeader lk={lk} ab={ab} errors={val.errors.length} schule={schule} schw={schwE}/>
         <Matrix vf={vfX} bl={eBl} lk={lk} ab={ab} hjs={HJ} onToggle={tog} showAbi={true} klausur={klMap} locked={["D","M","SP"]}/>
         <div style={{display:"flex",gap:12,marginTop:8,fontSize:11,color:T.txL,flexWrap:"wrap"}}>
-          <span><strong style={{color:T.ok}}>3</strong> = belegt (GK, 3h)</span>
+          <span><strong style={{color:T.ok}}>3</strong> = belegt (GK, 3 Std.)</span>
           <span><strong style={{color:T.pri}}>LK</strong> = Leistungskurs (5h)</span>
           <span><strong style={{color:T.acc}}>ZK</strong> = Zusatzkurs</span>
           <span style={{color:"#e8b4b4"}}><strong>✕</strong> = weg ist weg</span>
@@ -841,6 +842,7 @@ export default function App(){
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
           <button onClick={function(){setShowHelp(true);}} style={{padding:"5px 12px",borderRadius:8,border:"none",backgroundColor:"rgba(255,255,255,.15)",color:"#fff",cursor:"pointer",fontSize:12,fontWeight:500}}>{"❓ Hilfe"}</button>
           <button onClick={function(){setMode("choose");}} style={{padding:"5px 12px",borderRadius:8,border:"none",backgroundColor:"rgba(255,255,255,.15)",color:"#fff",cursor:"pointer",fontSize:12,fontWeight:500}}>{"← Startseite"}</button>
+          {ws>0&&<button onClick={function(){setMode("wizard");}} style={{padding:"5px 12px",borderRadius:8,border:"none",backgroundColor:"rgba(255,255,255,.15)",color:"#fff",cursor:"pointer",fontSize:12,fontWeight:500}}>{"🧭 Zurück zur Schrittansicht"}</button>}
           <Tag c={schwColor(schwE)} bg={schwBg(schwE)}>{schwE.bd?"⚖️ Offen":schwE.sp?"🌐 Sprachlich":schwE.nw?"🔬 NaWi":"⚠ Schwerpunkt?"}</Tag>
           <Tag c={val.errors.length>0?"#fecaca":"#bbf7d0"} bg={val.errors.length>0?"rgba(239,68,68,.2)":"rgba(16,185,129,.2)"}>{val.errors.length===0?"✓ OK":val.errors.length+" Fehler"}</Tag>
         </div>
@@ -877,19 +879,19 @@ export default function App(){
   var sid=STEPS[ws]||"willkommen";var a=wa;
   var wPlan=null,wVal=null;
   if(sid==="ergebnis"){wPlan=buildPlan(a);wVal=doVal(wPlan.bl,wPlan.lk,wPlan.ab,vf,{hat2FSSekI:!!(a.fremdsprachen&&a.fremdsprachen.length>=2),befreitReligion:a.religion==="PL_ersatz"});}
-  var canN=function(){switch(sid){case"schule":case"willkommen":return true;case"bildungsgang":return!!a.bildungsgang;case"fremdsprachen":return a.fremdsprachen&&a.fremdsprachen.length>0;case"fortgefFS":return!!a.fortgefFS;case"religion":return!!a.religion;case"kunstmusik":return!!a.kunstmusik;case"naturwissenschaft":return!!a.naturwissenschaft;case"gesellschaftswiss":return!!a.gesellschaftswiss&&!(a.religion==="PL_ersatz"&&a.gesellschaftswiss==="PL");case"weitereFaecher":return schw.ok;case"klausurfaecher":return!!a.klGW&&!!a.klNW;case"leistungskurse":return!!a.lk1&&!!a.lk2;case"abiturfaecher":return!!a.abi3&&!!a.abi4;default:return false;}};
+  var canN=function(){switch(sid){case"schule":case"willkommen":return true;case"bildungsgang":return!!a.bildungsgang;case"fremdsprachen":return a.fremdsprachen&&a.fremdsprachen.length>0;case"fortgefFS":return!!a.fortgefFS;case"religion":return!!a.religion;case"kunstmusik":return!!a.kunstmusik;case"naturwissenschaft":return!!a.naturwissenschaft;case"gesellschaftswiss":return!!a.gesellschaftswiss&&!(a.religion==="PL_ersatz"&&a.gesellschaftswiss==="PL");case"weitereFaecher":return schw.ok;case"klausurfaecher":return(Array.isArray(a.klGW)?a.klGW.length>0:!!a.klGW)&&(Array.isArray(a.klNW)?a.klNW.length>0:!!a.klNW);case"leistungskurse":return!!a.lk1&&!!a.lk2;case"abiturfaecher":return!!a.abi3&&!!a.abi4;default:return false;}};
   var prog=Math.round((ws/(STEPS.length-1))*100);
 
   function renderWiz(){switch(sid){
     case"schule":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Deine Schule einrichten {"🏫"}</h2>
         {schule.name?<div style={{padding:"10px 14px",borderRadius:12,backgroundColor:T.okBg,marginBottom:12,fontSize:13,color:T.ok,border:"1px solid #86efac"}}>✓ Schulprofil geladen: <strong>{schule.name}</strong>{schule.jahr?" ("+schule.jahr+")":""}{schule.stand?" – Stand: "+schule.stand:""}</div>
         :<div><p style={{fontSize:13,color:T.txL,marginBottom:5,lineHeight:1.6}}>Die Grundfächer sind schon ausgewählt. Füge hinzu, was deine Schule <strong>zusätzlich</strong> anbietet.</p>
-        <Hint>Du hast das Fächerangebot deiner Schule als Datei? Gehe über ← Startseite zurück und lade es dort – dann sind die Fächer deiner Schule automatisch richtig eingestellt.</Hint></div>}
+        <Hint>Hat deine Schule ein Schulprofil mit OberstufenCheck erstellt? Gehe über ← Startseite zurück und lade es dort. Das ist keine LuPO-Datei, sondern eine eigene .json-Datei aus diesem Tool.</Hint></div>}
         <div style={{fontSize:12,fontWeight:700,color:T.txL,marginBottom:8,letterSpacing:".03em"}}>FÄCHERANGEBOT</div>
         {["I","II","III","X"].map(function(af){return <div key={af} style={{marginBottom:10}}><div style={{fontSize:10,fontWeight:700,color:T.txL,textTransform:"uppercase",marginBottom:4,letterSpacing:".05em"}}>{af!=="X"?"AF "+af:"Sonstige"}</div><div style={{display:"flex",flexWrap:"wrap",gap:5}}>{FAE.filter(function(f){return f.af===af;}).map(function(f){var act=vf.indexOf(f.id)>=0;var isMin=DEFVF.indexOf(f.id)>=0;return <button key={f.id} onClick={function(){setVf(function(p2){var nv=act?p2.filter(function(x){return x!==f.id;}):p2.concat([f.id]);setVfLK(function(lks){return lks.filter(function(x){return nv.indexOf(x)>=0;});});return nv;});}} style={{padding:"6px 14px",borderRadius:20,border:"2px solid "+(act?T.pri:"transparent"),backgroundColor:act?T.priL:"#f4f2fa",color:act?T.pri:T.txL,cursor:"pointer",fontSize:12,fontWeight:act?600:400,transition:"all .15s"}}>{(act?"✓ ":"")+f.n+(isMin&&act?" •":"")}</button>;})}</div></div>;})}
         <div style={{marginTop:16,paddingTop:14,borderTop:"2px solid "+T.bdr}}>
-          <div style={{fontSize:12,fontWeight:700,color:T.txL,marginBottom:6,letterSpacing:".03em"}}>ALS LK WÄHLBAR</div>
-          <p style={{fontSize:13,color:T.txL,marginBottom:10}}>Nicht jede Schule bietet jedes Fach als LK an. Diese Fächer bietet deine Schule als LK an.</p>
+          <div style={{fontSize:12,fontWeight:700,color:T.txL,marginBottom:6,letterSpacing:".03em"}}>WELCHE FÄCHER BIETET DEINE SCHULE ALS LK AN?</div>
+          <p style={{fontSize:13,color:T.txL,marginBottom:10}}>Nicht jede Schule bietet jedes Fach als LK an. Wähle hier die Fächer, die an deiner Schule als Leistungskurs angeboten werden.</p>
           <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
             {vf.filter(function(id){return FM[id]&&FM[id].lk;}).map(function(id){var act=vfLK.indexOf(id)>=0;return <button key={id} onClick={function(){setVfLK(function(p2){return act?p2.filter(function(x){return x!==id;}):p2.concat([id]);});}} style={{padding:"5px 12px",borderRadius:16,border:"2px solid "+(act?"#06b6d4":"transparent"),backgroundColor:act?"#cffafe":"#f4f2fa",color:act?"#0e7490":T.txL,cursor:"pointer",fontSize:11.5,fontWeight:act?600:400}}>{(act?"✓ ":"")+FM[id].n}</button>;})}
           </div>
@@ -906,38 +908,39 @@ export default function App(){
     case"willkommen":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Hey! 👋</h2><p style={{fontSize:15,color:T.txL,lineHeight:1.7,marginTop:8}}>In ein paar Minuten hast du deinen Belegungsplan für die Oberstufe.</p><div style={{padding:12,borderRadius:10,backgroundColor:T.infoBg,marginTop:10,fontSize:12.5,color:T.tx,lineHeight:1.6}}>
       <strong>Kurz erklärt – so ist die Oberstufe aufgebaut:</strong><br/>
       Die Oberstufe dauert 3 Jahre: <strong>EF</strong> (Einführungsphase, 1 Jahr) und <strong>Q-Phase</strong> (Qualifikationsphase, 2 Jahre). In der EF probierst du Fächer aus, ab der Q-Phase zählen die Noten fürs Abitur.<br/><br/>
-      Du belegst ca. 11–12 Fächer pro Halbjahr. Einige sind Pflicht (Deutsch, Mathe, Sport …), andere wählst du selbst. Ab der Q-Phase wählst du zwei <strong>Leistungskurse</strong> (LK, 5 Stunden/Woche) – der Rest sind Grundkurse (3h).
+      Du belegst ca. 11–12 Fächer pro Halbjahr. Einige sind Pflicht (Deutsch, Mathe, Sport …), andere wählst du selbst. Ab der Q-Phase wählst du zwei <strong>Leistungskurse</strong> (LK, 5 Stunden/Woche) – der Rest sind Grundkurse (3 Stunden).
       </div>
-      <Hint>Du musst dich <strong>nicht sofort</strong> festlegen, ob du sprachlich oder naturwiss. willst. Die LK-Wahl wird erst ab Q verbindlich, das 3. und 4. Abiturfach sogar erst in Q2.</Hint></div>;
+      <Hint>Du musst dich <strong>nicht sofort</strong> festlegen, ob du einen sprachlichen oder naturwissenschaftlichen Schwerpunkt wählen willst. Die LK-Wahl wird erst ab der Qualifikationsphase verbindlich, das 3. und 4. Abiturfach sogar erst in Q2.</Hint></div>;
     case"bildungsgang":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>G8 oder G9?</h2><p style={{fontSize:13,color:T.txL,marginBottom:10}}>Ab wann beginnt bei dir die Oberstufe? Das hängt von deiner Schule ab. Die meisten Gymnasien in NRW sind inzwischen wieder G9. Frag im Zweifel deine Schule.</p><Chips options={[{id:"G9",label:"G9",desc:"Oberstufe ab Klasse 11 (Gymnasium G9 oder Gesamtschule)"},{id:"G8",label:"G8",desc:"Oberstufe ab Klasse 10 (altes Gymnasium-Modell)"}]} selected={a.bildungsgang} onSelect={function(id){sA("bildungsgang",id);}}/></div>;
-    case"fremdsprachen":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Deine Fremdsprachen 🌍</h2><p style={{fontSize:13,color:T.txL,marginBottom:5}}>Welche Sprachen hattest du in der Sek I mindestens 4 Jahre?</p><p style={{fontSize:13,color:T.txL,marginBottom:12}}>Das sind deine <strong>fortgeführten Fremdsprachen</strong> – du kannst sie in der Oberstufe weiterbelegen. Mindestens eine davon musst du bis zum Abitur durchgehend belegen.</p><Chips multi options={vf.filter(function(id){return FM[id]&&FM[id].tp==="ffs";}).map(function(id){return{id:id,label:FM[id].n};})} selected={a.fremdsprachen||[]} onSelect={function(id){togM("fremdsprachen",id);}}/>{a.fremdsprachen&&a.fremdsprachen.indexOf("L")>=0&&<div style={{marginTop:10,padding:10,borderRadius:10,backgroundColor:T.infoBg,fontSize:12.5,color:T.tx,lineHeight:1.6}}>
+    case"fremdsprachen":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Deine Fremdsprachen 🌍</h2><p style={{fontSize:13,color:T.txL,marginBottom:5}}>Welche Sprachen hattest du von der 5. bis 10. Klasse mindestens 4 Jahre?</p><p style={{fontSize:13,color:T.txL,marginBottom:12}}>Das sind deine <strong>fortgeführten Fremdsprachen</strong> – du kannst sie in der Oberstufe weiterbelegen. Mindestens eine davon musst du bis zum Abitur durchgehend belegen.</p><Chips multi options={vf.filter(function(id){return FM[id]&&FM[id].tp==="ffs";}).map(function(id){return{id:id,label:FM[id].n};})} selected={a.fremdsprachen||[]} onSelect={function(id){togM("fremdsprachen",id);}}/>{a.fremdsprachen&&a.fremdsprachen.indexOf("L")>=0&&<div style={{marginTop:10,padding:10,borderRadius:10,backgroundColor:T.infoBg,fontSize:12.5,color:T.tx,lineHeight:1.6}}>
         <strong>📜 Latinum:</strong> Wenn du Latein mindestens bis Ende der EF belegst, erhältst du das Latinum (kleines Latinum ab Ende EF, großes Latinum bei Fortführung bis Q). Die genauen Voraussetzungen hängen davon ab, seit welcher Klasse du Latein hattest – frag deine Schule!
       </div>}
       {a.fremdsprachen&&a.fremdsprachen.length<2&&<Warn>Ohne 2. Fremdsprache aus der Sek I musst du eine <strong>neu einsetzende Fremdsprache</strong> (z.B. Spanisch ab der EF) von der EF bis Q2 durchgehend belegen.</Warn>}</div>;
-    case"fortgefFS":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Welche Sprache weiterführen?</h2><p style={{fontSize:13,color:T.txL,marginBottom:5}}>Mindestens eine Fremdsprache muss durchgehend bis zum Abi belegt werden.</p><p style={{fontSize:13,color:T.txL,marginBottom:12}}>Wähle hier deine Haupt-Fremdsprache. Im Wahlbereich später kannst du weitere Sprachen dazunehmen – auch eine neue Sprache (z.B. Spanisch ab EF).</p><Chips options={(a.fremdsprachen||[]).map(function(id){return{id:id,label:FM[id]?FM[id].n:id};})} selected={a.fortgefFS} onSelect={function(id){sA("fortgefFS",id);}}/><Hint>Diese Sprache wird automatisch Klausurfach. Wenn du sie als LK oder Abiturfach willst, muss sie fortgeführt (nicht neu einsetzend) sein.</Hint></div>;
-    case"religion":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Religion oder Philosophie</h2><p style={{fontSize:13,color:T.txL,marginBottom:5}}>Wähle genau eines. In der Oberstufe ist eines dieser Fächer Pflicht.</p><p style={{fontSize:13,color:T.txL,marginBottom:12}}>Wer vom Religionsunterricht befreit ist, wählt Philosophie als Ersatzfach. Religion und Philosophie können nicht gleichzeitig belegt werden.</p><Chips options={vf.filter(function(id){return FM[id]&&FM[id].tp==="rel";}).map(function(id){return{id:id,label:FM[id].n};}).concat([{id:"PL_ersatz",label:"Philosophie",desc:"Ersatzfach – vom Religionsunterricht befreit"}])} selected={a.religion} onSelect={function(id){sA("religion",id);}}/><Hint>Philosophie als Ersatzfach zählt gleichzeitig als Gesellschaftswissenschaft, darf dann aber nicht dein einziges GW-Fach sein (§8 Abs. 3). Du brauchst also zusätzlich z.B. Geschichte oder SoWi.</Hint></div>;
-    case"kunstmusik":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Kunst oder Musik? 🎨🎵</h2><p style={{fontSize:13,color:T.txL,marginBottom:5}}>Du musst mindestens eines dieser Fächer in der EF belegen.</p><p style={{fontSize:13,color:T.txL,marginBottom:12}}>In der Q-Phase kannst du stattdessen auch <strong>Literatur</strong> (z.B. Theater, kreatives Schreiben) wählen – das wird automatisch berücksichtigt.</p><Chips options={vf.filter(function(id){return id==="KU"||id==="MU";}).map(function(id){return{id:id,label:FM[id].n};})} selected={a.kunstmusik} onSelect={function(id){sA("kunstmusik",id);}}/></div>;
-    case"naturwissenschaft":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Deine Naturwissenschaft 🔬</h2><p style={{fontSize:13,color:T.txL,marginBottom:5}}>Mindestens ein NaWi-Fach muss von der EF bis zum Abi durchgehend belegt werden.</p><p style={{fontSize:13,color:T.txL,marginBottom:12}}>Im nächsten Schritt kannst du noch weitere NaWi-Fächer dazunehmen – wenn du z.B. zwei NaWi willst (naturwiss. Schwerpunkt).</p><Chips options={vf.filter(function(id){return FM[id]&&FM[id].tp==="nw";}).map(function(id){return{id:id,label:FM[id].n};})} selected={a.naturwissenschaft} onSelect={function(id){sA("naturwissenschaft",id);}}/></div>;
-    case"gesellschaftswiss":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Gesellschaftswissenschaft 🌐</h2>
-      <p style={{fontSize:13,color:T.txL,marginBottom:5}}>Ein GW-Fach muss durchgehend bis zum Abi belegt werden.</p>
-      <p style={{fontSize:13,color:T.txL,marginBottom:12}}>Gesellschaftswissenschaften (GW) sind Fächer wie Geschichte, SoWi, Erdkunde, Pädagogik oder Philosophie. Wichtig: Geschichte und SoWi müssen <strong>beide</strong> irgendwann in deiner Oberstufe vorkommen – entweder als reguläres Fach oder als Zusatzkurs (ZK) in Q2.</p>
+    case"fortgefFS":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Welche Sprache weiterführen?</h2><p style={{fontSize:13,color:T.txL,marginBottom:5}}>Mindestens eine Fremdsprache muss durchgehend bis zum Abitur belegt werden.</p><p style={{fontSize:13,color:T.txL,marginBottom:12}}>Wähle hier die Fremdsprache, die du sicher weiterführen möchtest. Später kannst du weitere Sprachen dazunehmen.</p><Chips options={(a.fremdsprachen||[]).map(function(id){return{id:id,label:FM[id]?FM[id].n:id};})} selected={a.fortgefFS} onSelect={function(id){sA("fortgefFS",id);}}/><Hint>Diese Sprache wird automatisch Klausurfach. Du kannst diese Wahl später im Plan noch anpassen.</Hint></div>;
+    case"religion":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Religion oder Philosophie (GW)</h2><p style={{fontSize:13,color:T.txL,marginBottom:5}}>Wähle genau eines. In der Oberstufe ist eines dieser Fächer Pflicht.</p><p style={{fontSize:13,color:T.txL,marginBottom:12}}>Wer vom Religionsunterricht befreit ist, wählt Philosophie als Ersatzfach. Religion und Philosophie können nicht gleichzeitig belegt werden.</p><Chips options={vf.filter(function(id){return FM[id]&&FM[id].tp==="rel";}).map(function(id){return{id:id,label:FM[id].n};}).concat([{id:"PL_ersatz",label:"Philosophie",desc:"Ersatzfach – vom Religionsunterricht befreit"}])} selected={a.religion} onSelect={function(id){sA("religion",id);}}/><Hint>Philosophie als Ersatzfach zählt gleichzeitig als Gesellschaftswissenschaft, darf dann aber nicht dein einziges GW-Fach sein. Du kannst diese Wahl später noch anpassen.</Hint></div>;
+    case"kunstmusik":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Kunst oder Musik? 🎨🎵</h2><p style={{fontSize:13,color:T.txL,marginBottom:5}}>Du musst mindestens eines dieser Fächer in der EF belegen.</p><p style={{fontSize:13,color:T.txL,marginBottom:12}}>In der Qualifikationsphase kannst du stattdessen auch Literatur wählen. Du kannst diese Wahl später im Plan noch anpassen.</p><Chips options={vf.filter(function(id){return id==="KU"||id==="MU";}).map(function(id){return{id:id,label:FM[id].n};})} selected={a.kunstmusik} onSelect={function(id){sA("kunstmusik",id);}}/></div>;
+    case"naturwissenschaft":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Deine Naturwissenschaft 🔬</h2><p style={{fontSize:13,color:T.txL,marginBottom:5}}>Mindestens ein NaWi-Fach muss von der EF bis zum Abi durchgehend belegt werden.</p><p style={{fontSize:13,color:T.txL,marginBottom:12}}>Im nächsten Schritt kannst du noch weitere Fächer dazunehmen. Du kannst diese Wahl später im Plan noch anpassen.</p><Chips options={vf.filter(function(id){return FM[id]&&FM[id].tp==="nw";}).map(function(id){return{id:id,label:FM[id].n};})} selected={a.naturwissenschaft} onSelect={function(id){sA("naturwissenschaft",id);}}/></div>;
+    case"gesellschaftswiss":return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Gesellschaftswissenschaft (GW) 🌐</h2>
+      <p style={{fontSize:13,color:T.txL,marginBottom:5}}>Wähle ein GW-Fach, das du durchgehend bis zum Abitur belegen möchtest.</p>
+      <p style={{fontSize:13,color:T.txL,marginBottom:12}}>Geschichte und SoWi müssen beide in der Qualifikationsphase vorkommen – entweder als reguläres Fach in der EF und Q1 oder als Zusatzkurs in der Q2.</p>
       <Chips options={vf.filter(function(id){return FM[id]&&FM[id].tp==="gw"&&!(id==="PL"&&(a.religion==="KR"||a.religion==="ER"));}).map(function(id){var d="";if(id==="GE")d="→ Kein ZK Geschichte nötig, aber ZK SoWi in Q2";if(id==="SW")d="→ Kein ZK SoWi nötig, aber ZK Geschichte in Q2";if(id!=="GE"&&id!=="SW")d="→ ZK Geschichte + SoWi in Q2 nötig";return{id:id,label:FM[id].n,desc:d};})} selected={a.gesellschaftswiss} onSelect={function(id){sA("gesellschaftswiss",id);}}/>
       {a.religion==="PL_ersatz"&&a.gesellschaftswiss==="PL"&&<ErrBox>Philosophie kann nicht gleichzeitig Ersatzfach und einziges GW-Fach sein. Bitte anderes GW-Fach wählen!</ErrBox>}
-      <Hint>Geschichte und Sozialwissenschaften müssen in der Oberstufe vorkommen – entweder als reguläres Fach (mind. bis Ende Q1) oder als Zusatzkurs in Q2. Wer GE oder SW als Haupt-GW wählt, spart einen der beiden Zusatzkurse.</Hint>
+      <Hint>Du kannst diese Wahl später im Plan noch anpassen.</Hint>
     </div>;
     case"weitereFaecher":{
       var relChosen=a.religion;
       var weiSel=a.weitereFaecher||[];
       // Pflichtfächer aus früheren Schritten (locked, nicht abwählbar)
-      var pflicht=["D","M","SP"];
-      ["fortgefFS","kunstmusik","naturwissenschaft","gesellschaftswiss"].forEach(function(k){if(wa[k])pflicht.push(wa[k]);});
-      if(wa.religion==="PL_ersatz")pflicht.push("PL");else if(wa.religion)pflicht.push(wa.religion);
-      pflicht=pflicht.filter(function(v,i,ar){return ar.indexOf(v)===i;});
+      var pflicht=["D","M","SP"]; // Echte Pflichtfächer
+      var vorgewaehlt=[]; // In vorigen Schritten gewählt (änderbar)
+      ["fortgefFS","kunstmusik","naturwissenschaft","gesellschaftswiss"].forEach(function(k){if(wa[k])vorgewaehlt.push(wa[k]);});
+      if(wa.religion==="PL_ersatz")vorgewaehlt.push("PL");else if(wa.religion)vorgewaehlt.push(wa.religion);
+      vorgewaehlt=vorgewaehlt.filter(function(v,i,ar){return ar.indexOf(v)===i&&pflicht.indexOf(v)<0;});
       // Alle wählbaren Fächer (außer Sport, Q-only, Religion-Konflikte)
       // Alle gewählten Fächer (Pflicht + Wahl)
-      var allChosen=pflicht.concat(weiSel);
+      var allChosen=pflicht.concat(vorgewaehlt).concat(weiSel);
       var wO=vf.filter(function(id){
-        if(!FM[id]||FM[id].tp==="sp"||FM[id].qo) return false;
+        if(!FM[id]||FM[id].qo) return false;
         if(FM[id].tp==="rel"){
           if(relChosen==="KR"&&id==="ER") return false;
           if(relChosen==="ER"&&id==="KR") return false;
@@ -955,7 +958,7 @@ export default function App(){
       });
       var need=Math.max(0,34-stunden);
       return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Deine Fächer ✨</h2>
-        <p style={{fontSize:13,color:T.txL,marginBottom:8,lineHeight:1.5}}>Hier siehst du alle deine Fächer. Die Pflichtfächer (🔒) stehen fest. Wähle zusätzlich Fächer, die dich interessieren – du brauchst insgesamt ca. 34 Wochenstunden. Für den <strong>Schwerpunkt</strong> brauchst du entweder 2 Fremdsprachen (sprachlich) oder 2 NaWi/Tech-Fächer (naturwissenschaftlich) – oder beides. Der Schwerpunkt schränkt deine LK- und Abi-Wahl <strong>nicht</strong> ein!</p>
+        <p style={{fontSize:13,color:T.txL,marginBottom:8,lineHeight:1.5}}>Hier siehst du alle deine Fächer. 🔒 = Pflichtfächer (Deutsch, Mathe, Sport), 📌 = in den vorigen Schritten gewählt. Wähle zusätzlich Fächer, die dich interessieren – du brauchst insgesamt ca. 34 Wochenstunden. Für den <strong>Schwerpunkt</strong> brauchst du entweder 2 Fremdsprachen (sprachlich) oder 2 NaWi/Tech-Fächer (naturwissenschaftlich) – oder beides. Der Schwerpunkt schränkt deine LK- und Abi-Wahl <strong>nicht</strong> ein!</p>
         <div style={{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap"}}>
           <Tag bg={T.priL} c={T.pri}>EF: {stunden}h / ~34h</Tag>
           {(wa.lk1||wa.lk2)&&<Tag bg="#cffafe" c="#0e7490">Q: {stundenQ}h (LK = 5h)</Tag>}
@@ -967,22 +970,24 @@ export default function App(){
         {[{label:"Sprachen",filter:function(f){return f.tp==="ffs"||f.tp==="nfs";}},
             {label:"Gesellschaftswiss.",filter:function(f){return f.tp==="gw"||f.tp==="rel";}},
             {label:"Mathe / NaWi / Tech",filter:function(f){return f.tp==="pfl"||f.tp==="nw"||f.tp==="nt";}},
-            {label:"Kunst / Musik",filter:function(f){return f.tp==="ku";}}
+            {label:"Kunst / Musik",filter:function(f){return f.tp==="ku";}},
+            {label:"Sport",filter:function(f){return f.tp==="sp";}}
           ].map(function(grp){
             var gIds=wO.filter(function(id){return FM[id]&&grp.filter(FM[id]);});
             if(gIds.length===0)return null;
             return <div key={grp.label} style={{marginBottom:10}}>
               <div style={{fontSize:10.5,fontWeight:700,color:T.txL,letterSpacing:".06em",textTransform:"uppercase",marginBottom:4}}>{grp.label}</div>
               <div className="chipGrid">{gIds.map(function(id){
-                var f=FM[id];var isPfl=pflicht.indexOf(id)>=0;var isWei=weiSel.indexOf(id)>=0;var active=isPfl||isWei;
+                var f=FM[id];var isPfl=pflicht.indexOf(id)>=0;var isVor=vorgewaehlt.indexOf(id)>=0;var isWei=weiSel.indexOf(id)>=0;var active=isPfl||isVor||isWei;
                 return <button key={id} onClick={function(){if(!isPfl)togM("weitereFaecher",id);}}
-                  style={{padding:"10px 16px",borderRadius:12,border:"2px solid "+(active?isPfl?"#86efac":T.pri:"transparent"),
-                    backgroundColor:active?isPfl?T.okBg:T.priL:"#f4f2fa",cursor:isPfl?"default":"pointer",textAlign:"left",
+                  style={{padding:"10px 16px",borderRadius:12,border:"2px solid "+(active?isPfl?"#86efac":isVor?"#93c5fd":T.pri:"transparent"),
+                    backgroundColor:active?isPfl?T.okBg:isVor?"#eff6ff":T.priL:"#f4f2fa",cursor:isPfl?"default":"pointer",textAlign:"left",
                     opacity:isPfl?0.85:1}}>
-                  <div style={{fontSize:13,fontWeight:active?700:500,color:active?isPfl?T.ok:T.pri:T.tx}}>
-                    {isPfl?"🔒 ":active?"✓ ":""}{f.n}{f.h===4?" (4h)":""}
+                  <div style={{fontSize:13,fontWeight:active?700:500,color:active?isPfl?T.ok:isVor?"#2563eb":T.pri:T.tx}}>
+                    {isPfl?"🔒 ":isVor?"📌 ":active?"✓ ":""}{f.n}{f.h===4?" (4h)":""}
                   </div>
-                  {isPfl&&<div style={{fontSize:10,color:T.txL,marginTop:1}}>Pflicht</div>}
+                  {isPfl&&<div style={{fontSize:10,color:T.txL,marginTop:1}}>Pflichtfach</div>}
+                  {isVor&&<div style={{fontSize:10,color:"#6b7280",marginTop:1}}>In vorigen Schritten gewählt</div>}
                 </button>;})}</div>
             </div>;
           })}
@@ -994,18 +999,18 @@ export default function App(){
       </div>;}
     case"klausurfaecher":{var pK=["D","M"];if(a.fortgefFS)pK.push(a.fortgefFS);pK=pK.filter(function(v,i,ar){return ar.indexOf(v)===i;});var gwO=gewIds.filter(function(id){return FM[id]&&FM[id].tp==="gw";});var nwO=gewIds.filter(function(id){return FM[id]&&FM[id].tp==="nw";});
       return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Klausurfächer in der EF ✍️</h2>
-        <p style={{fontSize:13,color:T.txL,marginBottom:5}}>In der Oberstufe gibt es <strong>schriftliche</strong> (= Klausuren) und <strong>mündliche</strong> Fächer.</p>
-        <p style={{fontSize:13,color:T.txL,marginBottom:14}}>Deutsch, Mathe und alle Fremdsprachen schreiben immer Klausuren. Zusätzlich wählst du je ein GW- und ein NaWi-Fach als Klausurfach. Alle anderen Fächer belegst du mündlich.</p>
+        <p style={{fontSize:13,color:T.txL,marginBottom:5}}>In der Oberstufe gibt es <strong>schriftliche</strong> (mit Klausuren) und <strong>mündliche</strong> Fächer.</p>
+        <p style={{fontSize:13,color:T.txL,marginBottom:14}}>In Deutsch, Mathe und allen Fremdsprachen werden Klausuren geschrieben. Zusätzlich wählst du mindestens ein Gesellschaftswissenschafts- und ein Naturwissenschafts-Fach als Klausurfach.</p>
         <div style={{marginBottom:14}}><div style={{fontSize:10.5,fontWeight:700,color:T.txL,marginBottom:4,letterSpacing:".06em",textTransform:"uppercase"}}>AUTOMATISCH GESETZT</div><div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{pK.map(function(id){return <Tag key={id} c={T.ok} bg={T.okBg}>{"✓ "+(FM[id]?FM[id].n:id)}</Tag>;})}</div></div>
-        <div style={{marginBottom:14}}><div style={{fontSize:13,fontWeight:600,marginBottom:5}}>GW-Klausurfach:</div><Chips options={gwO.map(function(id){return{id:id,label:FM[id].n};})} selected={a.klGW} onSelect={function(id){sA("klGW",id);}}/></div>
-        <div style={{marginBottom:14}}><div style={{fontSize:13,fontWeight:600,marginBottom:5}}>NaWi-Klausurfach:</div><Chips options={nwO.map(function(id){return{id:id,label:FM[id].n};})} selected={a.klNW} onSelect={function(id){sA("klNW",id);}}/></div>
+        <div style={{marginBottom:14}}><div style={{fontSize:13,fontWeight:600,marginBottom:5}}>GW-Klausurfächer (mind. 1):</div><Chips multi options={gwO.map(function(id){return{id:id,label:FM[id].n};})} selected={a.klGW||[]} onSelect={function(id){togM("klGW",id);}}/></div>
+        <div style={{marginBottom:14}}><div style={{fontSize:13,fontWeight:600,marginBottom:5}}>NaWi-Klausurfächer (mind. 1):</div><Chips multi options={nwO.map(function(id){return{id:id,label:FM[id].n};})} selected={a.klNW||[]} onSelect={function(id){togM("klNW",id);}}/></div>
         <Warn><strong>Wichtig:</strong> Nur Klausurfächer können später Abiturfächer werden! Wenn du ein Fach als mögliches Abi im Hinterkopf hast, wähle es jetzt schriftlich.</Warn>
         <Hint>In der Q-Phase müssen alle 4 Abiturfächer durchgehend schriftlich belegt werden. Fang also früh an, Klausuren zu schreiben in Fächern, die dich interessieren.</Hint>
       </div>;}
     case"leistungskurse":{var lIds=gewIds.filter(function(id){return FM[id]&&FM[id].lk&&FM[id].tp!=="nfs"&&vfLK.indexOf(id)>=0;});
       return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Leistungskurse 💪</h2>
         <p style={{fontSize:13,color:T.txL,marginBottom:5}}>Ab der Q-Phase belegst du zwei Fächer als <strong>Leistungskurse</strong> (LK) mit 5 statt 3 Wochenstunden.</p>
-        <p style={{fontSize:13,color:T.txL,marginBottom:14}}>Dein 1. LK muss Deutsch, Mathe, eine fortgeführte Fremdsprache oder eine Naturwissenschaft sein. Der 2. LK ist frei wählbar aus dem LK-Angebot deiner Schule. Beide LKs sind automatisch deine ersten beiden Abiturfächer.</p>
+        <p style={{fontSize:13,color:T.txL,marginBottom:14}}>Dein 1. LK muss aus Deutsch, Mathe, einer fortgeführten Fremdsprache oder einer Naturwissenschaft gewählt werden. Der 2. LK ist frei wählbar aus dem LK-Angebot deiner Schule. Beide LKs sind automatisch deine ersten beiden Abiturfächer.</p>
         <div style={{marginBottom:14}}><div style={{fontSize:13,fontWeight:600,marginBottom:5}}>1. LK:</div><Chips options={lIds.filter(function(id){return FM[id].a1;}).map(function(id){return{id:id,label:FM[id].n};})} selected={a.lk1} onSelect={function(id){sA("lk1",id);}}/></div>
         <div><div style={{fontSize:13,fontWeight:600,marginBottom:5}}>2. LK:</div><Chips options={lIds.filter(function(id){return id!==a.lk1;}).map(function(id){return{id:id,label:FM[id].n};})} selected={a.lk2} onSelect={function(id){sA("lk2",id);}}/></div>
         {a.lk1&&a.lk2&&a.lk1===a.lk2&&<ErrBox>Du hast zweimal dasselbe Fach gewählt.</ErrBox>}
@@ -1027,7 +1032,7 @@ export default function App(){
         {a.abi3&&a.abi4&&dmfs.length<2&&<Warn>Du brauchst mindestens 2 der Fächer Deutsch, Mathe oder eine Fremdsprache unter deinen 4 Abifächern.</Warn>}
         <Hint>Sport kann nur 4. Abiturfach (mündlich) sein. Literatur kann nicht Abiturfach sein. Die endgültige Festlegung erfolgt zu Beginn von Q2.</Hint>
       </div>;}
-    case"ergebnis":return <div><h2 style={{fontSize:22,fontWeight:800,color:T.pri,marginTop:0}}>{wVal&&wVal.errors.length===0?"Dein Plan steht! 🎉":wVal&&wVal.errors.length===1?"Fast fertig – 1 Punkt anpassen":"Fast fertig – "+wVal.errors.length+" Punkte anpassen"}</h2>
+    case"ergebnis":return <div><h2 style={{fontSize:22,fontWeight:800,color:T.pri,marginTop:0}}>{wVal&&wVal.errors.length===0?"Dein Plan steht! 🎉":wVal&&wVal.errors.length===1?"Fast fertig – noch 1 Punkt":"Fast fertig – noch "+wVal.errors.length+" Punkte"}</h2>
       {wVal&&wVal.errors.length>0&&<div style={{padding:14,borderRadius:12,backgroundColor:T.errBg,marginBottom:12,border:"1px solid #fecaca"}}>
         <div style={{fontSize:13,fontWeight:700,color:T.err,marginBottom:6}}>Das musst du noch ändern:</div>
         {wVal.errors.map(function(m,i){var cl=m.replace(/ → Tab [\w+\/]+$/,"");return <div key={i} style={{fontSize:12.5,color:T.err,marginBottom:3,paddingLeft:16,position:"relative"}}><span style={{position:"absolute",left:0}}>{"✗"}</span>{cl}</div>;})}
@@ -1048,7 +1053,7 @@ export default function App(){
         <Tag bg={T.priL} c={T.pri}>{"4. "+(FM[a.abi4]?FM[a.abi4].n:"")}</Tag>
         <Tag bg={schwBg(schw)} c={schwColor(schw)}>{schw.bd?"⚖️ Beide Schwerpunkte offen":schw.sp?"🌐 Sprachlicher Schwerpunkt":schw.nw?"🔬 Naturwiss. Schwerpunkt":"⚠ Schwerpunkt?"}</Tag>
       </div>
-      {stunden>36&&<Warn><strong>{stunden} Wochenstunden</strong> – erlaubt sind 32–36. Wähle im Detail-Modus Wahlfächer ab.</Warn>}
+      {stunden>36&&<Warn><strong>{stunden} Wochenstunden</strong> – erlaubt sind 32–36. Im nächsten Schritt kannst du Wahlfächer abwählen, um die Stundenzahl zu reduzieren.</Warn>}
       <div style={{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}>
         <Tag bg={stunden>36?T.warnBg:T.priL} c={stunden>36?T.warn:T.pri}>{"EF: "+stunden+"h"}</Tag>
         <Tag bg={stundenQ>38?T.warnBg:T.priL} c={stundenQ>38?T.warn:T.pri}>{"Q: "+stundenQ+"h (mit LK)"}</Tag>
@@ -1058,11 +1063,11 @@ export default function App(){
       </div>
       <div style={{padding:12,borderRadius:10,backgroundColor:T.infoBg,marginBottom:14,fontSize:12.5,color:T.tx,lineHeight:1.6}}>
         <strong>Wie geht es weiter?</strong><br/>
-        Dein Plan ist ein <strong>Entwurf</strong> – du kannst ihn jederzeit anpassen. Klicke auf „Plan im Detail bearbeiten“, um deinen Plan mit allen Halbjahren zu sehen. Dort kannst du einzelne Fächer gezielt an- und abwählen – z.B. ein Fach nur in der EF ausprobieren und dann abwählen.<br/><br/>
+        Dein Plan ist ein <strong>erster Entwurf</strong> – du kannst ihn jederzeit anpassen. Im nächsten Schritt siehst du deinen Plan als Tabelle mit allen Halbjahren (EF.1 bis Q2.2). Dort kannst du Fächer gezielt an- und abwählen, Wochenstunden anpassen und den Plan fertigstellen.<br/><br/>
         <strong>Wichtig:</strong> Dieser Plan ersetzt nicht die offizielle Beratung! Besprich deine Fächerwahl unbedingt mit der Beratungslehrkraft deiner Schule. Die verbindliche Anmeldung erfolgt über die Schule.
       </div>
       <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-        <Btn big onClick={function(){if(wPlan){setBl(wPlan.bl);setLk(wPlan.lk);setAb(wPlan.ab);setPr(function(p2){return Object.assign({},p2,{bildungsgang:a.bildungsgang||"G9",hat2FSSekI:!!(a.fremdsprachen&&a.fremdsprachen.length>=2),befreitReligion:a.religion==="PL_ersatz"});});setETab(5);setMode("expert");}}}>📊 Plan im Detail bearbeiten</Btn>
+        <Btn big onClick={function(){if(wPlan){setBl(wPlan.bl);setLk(wPlan.lk);setAb(wPlan.ab);setPr(function(p2){return Object.assign({},p2,{bildungsgang:a.bildungsgang||"G9",hat2FSSekI:!!(a.fremdsprachen&&a.fremdsprachen.length>=2),befreitReligion:a.religion==="PL_ersatz"});});setETab(5);setMode("expert");}}}>📊 Plan bearbeiten & fertigstellen</Btn>
         <Btn big outline onClick={function(){if(wPlan)expJSON({v:VERSION,d:VDATE,bl:wPlan.bl,lk:wPlan.lk,ab:wPlan.ab,vf:vf,vfLK:vfLK,schule:schule,wizard:a});}}>💾 Plan als Datei speichern</Btn>
       </div>
       <AppFooter showFeedback onInfo={setInfoPage} />
