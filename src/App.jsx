@@ -1004,8 +1004,7 @@ export default function App(){
         <div style={{marginBottom:14}}><div style={{fontSize:10.5,fontWeight:700,color:T.txL,marginBottom:4,letterSpacing:".06em",textTransform:"uppercase"}}>AUTOMATISCH GESETZT</div><div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{pK.map(function(id){return <Tag key={id} c={T.ok} bg={T.okBg}>{"✓ "+(FM[id]?FM[id].n:id)}</Tag>;})}</div></div>
         <div style={{marginBottom:14}}><div style={{fontSize:13,fontWeight:600,marginBottom:5}}>GW-Klausurfächer (mind. 1):</div><Chips multi options={gwO.map(function(id){return{id:id,label:FM[id].n};})} selected={a.klGW||[]} onSelect={function(id){togM("klGW",id);}}/></div>
         <div style={{marginBottom:14}}><div style={{fontSize:13,fontWeight:600,marginBottom:5}}>NaWi-Klausurfächer (mind. 1):</div><Chips multi options={nwO.map(function(id){return{id:id,label:FM[id].n};})} selected={a.klNW||[]} onSelect={function(id){togM("klNW",id);}}/></div>
-        <Hint><strong>Tipp:</strong> Ab der Qualifikationsphase müssen alle Abiturfächer schriftlich belegt werden. In der EF kannst du ein Fach auch erst mündlich belegen und es später noch auf schriftlich umstellen.</Hint>
-        <Hint>Ab der Q-Phase müssen alle 4 Abiturfächer schriftlich belegt werden. Es kann sich lohnen, schon in der EF Klausuren in Fächern zu schreiben, die du dir als Abifach vorstellen kannst.</Hint>
+        <Hint>In der EF kannst du Fächer auch erst mündlich belegen. Ab der Qualifikationsphase müssen alle 4 Abiturfächer dann schriftlich belegt werden – eine Umstellung von mündlich auf schriftlich ist zu Beginn der Q-Phase möglich.</Hint>
       </div>;}
     case"leistungskurse":{var lIds=gewIds.filter(function(id){return FM[id]&&FM[id].lk&&FM[id].tp!=="nfs"&&vfLK.indexOf(id)>=0;});
       return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Leistungskurse 💪</h2>
