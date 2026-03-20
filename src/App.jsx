@@ -967,9 +967,9 @@ export default function App(){
           <Tag bg={schw.ok?T.okBg:T.warnBg} c={schw.ok?T.ok:T.warn}>{schw.bd?"Beide Schwerpunkte offen ✓":schw.sp?"Sprachlich ✓":schw.nw?"NaWi ✓":"Schwerpunkt?"}</Tag>
         </div>
         {!schw.ok&&<Warn>Wähle mindestens eine <strong>weitere Fremdsprache</strong> oder ein <strong>NaWi/Tech-Fach</strong>. Du kannst auch beides!</Warn>}
-        {[{label:"Sprachen",filter:function(f){return f.tp==="ffs"||f.tp==="nfs";}},
+        {[{label:"Sprachen",filter:function(f){return f.tp==="ffs"||f.tp==="nfs"||f.id==="D";}},
             {label:"Gesellschaftswiss.",filter:function(f){return f.tp==="gw"||f.tp==="rel";}},
-            {label:"Mathe / NaWi / Tech",filter:function(f){return f.tp==="pfl"||f.tp==="nw"||f.tp==="nt";}},
+            {label:"Mathe / NaWi / Tech",filter:function(f){return (f.tp==="pfl"&&f.id!=="D")||f.tp==="nw"||f.tp==="nt";}},
             {label:"Kunst / Musik",filter:function(f){return f.tp==="ku";}},
             {label:"Sport",filter:function(f){return f.tp==="sp";}}
           ].map(function(grp){
@@ -1004,8 +1004,8 @@ export default function App(){
         <div style={{marginBottom:14}}><div style={{fontSize:10.5,fontWeight:700,color:T.txL,marginBottom:4,letterSpacing:".06em",textTransform:"uppercase"}}>AUTOMATISCH GESETZT</div><div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{pK.map(function(id){return <Tag key={id} c={T.ok} bg={T.okBg}>{"✓ "+(FM[id]?FM[id].n:id)}</Tag>;})}</div></div>
         <div style={{marginBottom:14}}><div style={{fontSize:13,fontWeight:600,marginBottom:5}}>GW-Klausurfächer (mind. 1):</div><Chips multi options={gwO.map(function(id){return{id:id,label:FM[id].n};})} selected={a.klGW||[]} onSelect={function(id){togM("klGW",id);}}/></div>
         <div style={{marginBottom:14}}><div style={{fontSize:13,fontWeight:600,marginBottom:5}}>NaWi-Klausurfächer (mind. 1):</div><Chips multi options={nwO.map(function(id){return{id:id,label:FM[id].n};})} selected={a.klNW||[]} onSelect={function(id){togM("klNW",id);}}/></div>
-        <Warn><strong>Wichtig:</strong> Nur Klausurfächer können später Abiturfächer werden! Wenn du ein Fach als mögliches Abifach im Hinterkopf hast, wähle es jetzt schriftlich.</Warn>
-        <Hint>In der Q-Phase müssen alle 4 Abiturfächer durchgehend schriftlich belegt werden. Fang also früh an, Klausuren zu schreiben in Fächern, die dich interessieren.</Hint>
+        <Hint><strong>Tipp:</strong> Ab der Qualifikationsphase müssen alle Abiturfächer schriftlich belegt werden. In der EF kannst du ein Fach auch erst mündlich belegen und es später noch auf schriftlich umstellen.</Hint>
+        <Hint>Ab der Q-Phase müssen alle 4 Abiturfächer schriftlich belegt werden. Es kann sich lohnen, schon in der EF Klausuren in Fächern zu schreiben, die du dir als Abifach vorstellen kannst.</Hint>
       </div>;}
     case"leistungskurse":{var lIds=gewIds.filter(function(id){return FM[id]&&FM[id].lk&&FM[id].tp!=="nfs"&&vfLK.indexOf(id)>=0;});
       return <div><h2 style={{fontSize:20,fontWeight:700,color:T.pri,marginTop:0}}>Leistungskurse 💪</h2>
