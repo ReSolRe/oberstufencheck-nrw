@@ -242,10 +242,25 @@ function Matrix(p){
   var vf=p.vf,bl=p.bl,lk=p.lk,ab=p.ab,hjs=p.hjs,tog=p.onToggle,showAbi=p.showAbi;
   var locked=p.locked||[];
   var kl=p.klausur||{}; // {fachId: true} for schriftliche Fächer
+  var viewMode=p.viewMode||"std";
+  var smOver=p.smOver||{};
+  var onSmToggle=p.onSmToggle;
   var grp={I:[],II:[],III:[],X:[]};
   vf.forEach(function(id){if(FM[id]&&!(FM[id].qo&&hjs.every(function(h){return h.indexOf("EF")===0;})))grp[FM[id].af].push(FM[id]);});
   var stdH=function(hj){return vf.filter(function(id){return bl[id]&&bl[id][hj];}).reduce(function(s,id){return s+(QH.indexOf(hj)>=0&&(lk.lk1===id||lk.lk2===id)?5:(FM[id]?FM[id].h:3));},0);};
   var cntH=function(hj){return vf.filter(function(id){return bl[id]&&bl[id][hj];}).length;};
+  // Check if a subject is pflichtschriftlich (cannot be toggled to M)
+  var isPflichtS=function(fid,hj){
+    var isQ=QH.indexOf(hj)>=0;
+    if(isQ&&(lk.lk1===fid||lk.lk2===fid))return true;
+    if(fid==="D"||fid==="M")return true;
+    if(FM[fid]&&(FM[fid].tp==="ffs"||FM[fid].tp==="nfs"))return true;
+    // 3. Abiturfach immer schriftlich
+    if(isQ&&ab.a3===fid)return true;
+    // 4. Abiturfach schriftlich außer in Q2.2
+    if(isQ&&ab.a4===fid&&hj!=="Q2.2")return true;
+    return false;
+  };
   // Determine S/M for a cell
   var getType=function(fid,hj){
     var isQ=QH.indexOf(hj)>=0;
@@ -257,14 +272,18 @@ function Matrix(p){
       var inQ1=bl[fid]&&(bl[fid]["Q1.1"]||bl[fid]["Q1.2"]);
       if(!inEF&&!inQ1&&(hj==="Q2.1"||hj==="Q2.2"))return "ZK";
     }
-    // Schriftlich: Pflicht-Klausurfächer, Abi, explizit gewählt
-    var isAbi=isQ&&(ab.a3===fid||ab.a4===fid);
-    if(isAbi)return "S";
+    // Pflichtschriftlich (nicht änderbar)
+    if(isPflichtS(fid,hj))return "S";
+    // 4. Abiturfach in Q2.2: mündlich (Vorabitur)
+    if(isQ&&ab.a4===fid&&hj==="Q2.2")return "M";
+    // User-Override hat Vorrang
+    if(smOver[fid]===true)return "S";
+    if(smOver[fid]===false)return "M";
+    // Klausurfächer aus Wizard (GW/NW Wahl) als Default
     if(kl[fid])return "S";
-    if(fid==="D"||fid==="M")return "S";
-    if(FM[fid]&&(FM[fid].tp==="ffs"||FM[fid].tp==="nfs"))return "S";
     return "M";
   };
+  var cntS=function(hj){return vf.filter(function(id){return bl[id]&&bl[id][hj];}).filter(function(id){var tp=getType(id,hj);return tp==="S"||tp==="LK";}).length;};
   return <div className="matrixWrap"><table style={{borderCollapse:"collapse",width:"100%",fontSize:12}}>
     <thead><tr style={{background:"linear-gradient(135deg,"+T.pri+","+T.priD+")"}}>
       <th style={{padding:5,fontSize:10,fontWeight:700,color:"#fff",width:24}}>AF</th>
@@ -292,9 +311,18 @@ function Matrix(p){
           }
           var tp=bel?getType(f.id,hj):"";
           var isLocked=locked.indexOf(f.id)>=0;
-          var label=!bel?(blocked?"✕":"–"):tp==="LK"?"LK":tp==="ZK"?"ZK":String(isLK?5:(f.h||3));
-          var clr=!bel?(blocked?"#e8b4b4":"#ccc"):tp==="LK"?T.pri:tp==="ZK"?T.acc:T.ok;
-          return <td key={hj} style={{padding:0,borderBottom:"1px solid "+T.bdr,textAlign:"center",cursor:isLK||blocked||locked.indexOf(f.id)>=0?"default":"pointer",backgroundColor:blocked?"#f8f0f0":""}} onClick={function(){if(!isLK&&!blocked&&locked.indexOf(f.id)<0&&tog)tog(f.id,hj);}}>
+          var smMode=viewMode==="sm";
+          var label,clr;
+          if(!bel){label=blocked?"✕":"–";clr=blocked?"#e8b4b4":"#ccc";}
+          else if(smMode){label=tp;clr=tp==="LK"?T.pri:tp==="ZK"?T.acc:tp==="S"?T.ok:T.txL;}
+          else{label=tp==="LK"?"LK":tp==="ZK"?"ZK":String(isLK?5:(f.h||3));clr=tp==="LK"?T.pri:tp==="ZK"?T.acc:T.ok;}
+          var smCanToggle=smMode&&bel&&!isPflichtS(f.id,hj)&&tp!=="LK"&&tp!=="ZK"&&!(QH.indexOf(hj)>=0&&ab.a4===f.id&&hj==="Q2.2");
+          var cellClick=function(){
+            if(smMode){if(smCanToggle&&onSmToggle)onSmToggle(f.id);}
+            else{if(!isLK&&!blocked&&locked.indexOf(f.id)<0&&tog)tog(f.id,hj);}
+          };
+          var canClick=smMode?smCanToggle:(!isLK&&!blocked&&locked.indexOf(f.id)<0);
+          return <td key={hj} style={{padding:0,borderBottom:"1px solid "+T.bdr,textAlign:"center",cursor:canClick?"pointer":"default",backgroundColor:blocked?"#f8f0f0":""}} onClick={cellClick}>
             <div style={{height:22,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:bel?700:400,color:clr,fontSize:blocked?9:11,userSelect:"none",transition:"all .15s"}}>{label}</div>
           </td>;})}
         {showAbi&&<td style={{padding:2,borderBottom:"1px solid "+T.bdr,textAlign:"center",fontWeight:700,fontSize:11,color:aN?T.pri:"#ddd"}}>{aN||"–"}</td>}
@@ -303,8 +331,8 @@ function Matrix(p){
         {hjs.map(function(hj){var c=cntH(hj);return <td key={hj} style={{padding:2,textAlign:"center",fontWeight:600,fontSize:10,color:T.txL}}>{c||"–"}</td>;})}
         {showAbi&&<td style={{padding:2,textAlign:"center",fontWeight:600,fontSize:10,color:T.txL}}></td>}
       </tr>
-      <tr style={{background:T.priL+"44"}}><td colSpan={2} style={{padding:3,fontWeight:700,fontSize:10,textAlign:"right"}}>Wstd.</td>
-        {hjs.map(function(hj){var s=stdH(hj);return <td key={hj} style={{padding:2,textAlign:"center",fontWeight:700,fontSize:11,color:s>=32&&s<=36?T.ok:s>0?T.warn:T.txL}}>{s||"–"}</td>;})}
+      <tr style={{background:T.priL+"44"}}><td colSpan={2} style={{padding:3,fontWeight:700,fontSize:10,textAlign:"right"}}>{viewMode==="sm"?"S":"Wstd."}</td>
+        {viewMode==="sm"?hjs.map(function(hj){var s=cntS(hj);return <td key={hj} style={{padding:2,textAlign:"center",fontWeight:700,fontSize:11,color:s>0?T.ok:T.txL}}>{s||"–"}</td>;}):hjs.map(function(hj){var s=stdH(hj);return <td key={hj} style={{padding:2,textAlign:"center",fontWeight:700,fontSize:11,color:s>=32&&s<=36?T.ok:s>0?T.warn:T.txL}}>{s||"–"}</td>;})}
         {showAbi&&<td/>}
       </tr>
     </tbody></table></div>;
@@ -474,6 +502,8 @@ export default function App(){
   var _et=useState(0),eTab=_et[0],setETab=_et[1];
   var _ws=useState(0),ws=_ws[0],setWs=_ws[1];
   var _wa=useState({}),wa=_wa[0],setWa=_wa[1];
+  var _mv=useState("std"),matView=_mv[0],setMatView=_mv[1];
+  var _smO=useState({}),smOver=_smO[0],setSmOver=_smO[1];
   var _pg=useState(null),infoPage=_pg[0],setInfoPage=_pg[1];
   var _help=useState(false),showHelp=_help[0],setShowHelp=_help[1];
   var _upd=useState(false),showUpdate=_upd[0],setShowUpdate=_upd[1];
@@ -816,13 +846,22 @@ export default function App(){
           {lk.lk1&&<Tag c="#fff" bg={T.pri}>LK: {FM[lk.lk1]?FM[lk.lk1].n:"?"} + {FM[lk.lk2]?FM[lk.lk2].n:"?"}</Tag>}
         </div>
         <PrintHeader lk={lk} ab={ab} errors={val.errors.length} schule={schule} schw={schwE}/>
-        <Matrix vf={vfX} bl={eBl} lk={lk} ab={ab} hjs={HJ} onToggle={tog} showAbi={true} klausur={klMap} locked={["D","M","SP"]}/>
-        <div style={{display:"flex",gap:12,marginTop:8,fontSize:11,color:T.txL,flexWrap:"wrap"}}>
+        <div className="noP" style={{display:"flex",gap:6,marginBottom:8}}>
+          {[{k:"std",l:"Kursstunden"},{k:"sm",l:"S / M"}].map(function(o){var act=matView===o.k;return <button key={o.k} onClick={function(){setMatView(o.k);}} style={{padding:"5px 14px",borderRadius:20,border:"2px solid "+(act?T.pri:"transparent"),backgroundColor:act?T.priL:"#f4f2fa",color:act?T.pri:T.txL,cursor:"pointer",fontSize:11.5,fontWeight:act?600:400,transition:"all .15s"}}>{o.l}</button>;})}
+        </div>
+        <Matrix vf={vfX} bl={eBl} lk={lk} ab={ab} hjs={HJ} onToggle={tog} showAbi={true} klausur={klMap} locked={["D","M","SP"]} viewMode={matView} smOver={smOver} onSmToggle={function(fid){setSmOver(function(prev){var n=Object.assign({},prev);if(n[fid]===undefined){n[fid]=klMap[fid]?false:true;}else{delete n[fid];}return n;});}}/>
+        {matView==="sm"?<div style={{display:"flex",gap:12,marginTop:8,fontSize:11,color:T.txL,flexWrap:"wrap"}}>
+          <span><strong style={{color:T.ok}}>S</strong> = schriftlich</span>
+          <span><strong style={{color:T.txL}}>M</strong> = mündlich</span>
+          <span><strong style={{color:T.pri}}>LK</strong> = Leistungskurs</span>
+          <span><strong style={{color:T.acc}}>ZK</strong> = Zusatzkurs</span>
+          <span style={{color:"#e8b4b4"}}><strong>✕</strong> = weg ist weg</span>
+        </div>:<div style={{display:"flex",gap:12,marginTop:8,fontSize:11,color:T.txL,flexWrap:"wrap"}}>
           <span><strong style={{color:T.ok}}>3</strong> = belegt (GK, 3 Std.)</span>
           <span><strong style={{color:T.pri}}>LK</strong> = Leistungskurs (5h)</span>
           <span><strong style={{color:T.acc}}>ZK</strong> = Zusatzkurs</span>
           <span style={{color:"#e8b4b4"}}><strong>✕</strong> = weg ist weg</span>
-        </div>
+        </div>}
         <Hint>Fächer, die einmal abgewählt wurden, können nicht wieder belegt werden (Folgekurs-Prinzip, §6 Abs. 6). Abwahl gilt automatisch für alle Folge-Halbjahre.</Hint>
         {(val.errors.length>0||val.warnings.length>0)&&<div className="printOnly" style={{marginTop:12,padding:10,border:"1px solid #aaa",borderRadius:4}}>
           <div style={{fontSize:12,fontWeight:700,marginBottom:6}}>Regelprüfung ({val.errors.length} Fehler, {val.warnings.length} Hinweise)</div>
