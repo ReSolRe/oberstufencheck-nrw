@@ -276,9 +276,10 @@ function Matrix(p){
     if(isPflichtS(fid,hj))return "S";
     // 4. Abiturfach in Q2.2: mündlich (Vorabitur)
     if(isQ&&ab.a4===fid&&hj==="Q2.2")return "M";
-    // User-Override hat Vorrang
-    if(smOver[fid]===true)return "S";
-    if(smOver[fid]===false)return "M";
+    // User-Override pro Halbjahr hat Vorrang
+    var ov=smOver[fid];
+    if(ov&&ov[hj]===true)return "S";
+    if(ov&&ov[hj]===false)return "M";
     // Klausurfächer aus Wizard (GW/NW Wahl) als Default
     if(kl[fid])return "S";
     return "M";
@@ -318,7 +319,7 @@ function Matrix(p){
           else{label=tp==="LK"?"LK":tp==="ZK"?"ZK":String(isLK?5:(f.h||3));clr=tp==="LK"?T.pri:tp==="ZK"?T.acc:T.ok;}
           var smCanToggle=smMode&&bel&&!isPflichtS(f.id,hj)&&tp!=="LK"&&tp!=="ZK"&&!(QH.indexOf(hj)>=0&&ab.a4===f.id&&hj==="Q2.2");
           var cellClick=function(){
-            if(smMode){if(smCanToggle&&onSmToggle)onSmToggle(f.id);}
+            if(smMode){if(smCanToggle&&onSmToggle)onSmToggle(f.id,hj);}
             else{if(!isLK&&!blocked&&locked.indexOf(f.id)<0&&tog)tog(f.id,hj);}
           };
           var canClick=smMode?smCanToggle:(!isLK&&!blocked&&locked.indexOf(f.id)<0);
@@ -849,7 +850,7 @@ export default function App(){
         <div className="noP" style={{display:"flex",gap:6,marginBottom:8}}>
           {[{k:"std",l:"Kursstunden"},{k:"sm",l:"S / M"}].map(function(o){var act=matView===o.k;return <button key={o.k} onClick={function(){setMatView(o.k);}} style={{padding:"5px 14px",borderRadius:20,border:"2px solid "+(act?T.pri:"transparent"),backgroundColor:act?T.priL:"#f4f2fa",color:act?T.pri:T.txL,cursor:"pointer",fontSize:11.5,fontWeight:act?600:400,transition:"all .15s"}}>{o.l}</button>;})}
         </div>
-        <Matrix vf={vfX} bl={eBl} lk={lk} ab={ab} hjs={HJ} onToggle={tog} showAbi={true} klausur={klMap} locked={["D","M","SP"]} viewMode={matView} smOver={smOver} onSmToggle={function(fid){setSmOver(function(prev){var n=Object.assign({},prev);if(n[fid]===undefined){n[fid]=klMap[fid]?false:true;}else{delete n[fid];}return n;});}}/>
+        <Matrix vf={vfX} bl={eBl} lk={lk} ab={ab} hjs={HJ} onToggle={tog} showAbi={true} klausur={klMap} locked={["D","M","SP"]} viewMode={matView} smOver={smOver} onSmToggle={function(fid,hj){setSmOver(function(prev){var n=Object.assign({},prev);if(!n[fid])n[fid]={};var cur=n[fid][hj];if(cur===undefined){n[fid]=Object.assign({},n[fid]);n[fid][hj]=klMap[fid]?false:true;}else{n[fid]=Object.assign({},n[fid]);delete n[fid][hj];if(Object.keys(n[fid]).length===0)delete n[fid];}return n;});}}/>
         {matView==="sm"?<div style={{display:"flex",gap:12,marginTop:8,fontSize:11,color:T.txL,flexWrap:"wrap"}}>
           <span><strong style={{color:T.ok}}>S</strong> = schriftlich</span>
           <span><strong style={{color:T.txL}}>M</strong> = mündlich</span>

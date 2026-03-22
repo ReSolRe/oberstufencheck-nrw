@@ -3,7 +3,8 @@
     "allow": [
       "mcp__Claude_Preview__preview_start",
       "Bash(npx vite:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "WebFetch(domain:bass.schule.nrw)"
     ]
   }
 }
